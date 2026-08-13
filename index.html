@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iúnigo - Reporte de performance - Julio 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--red:#9A0000;--red-hot:#ED1B24;--ink:#141414;--body:#3A3A3A;--g1:#9E9E9E;--g2:#CCCCCC;--g3:#E6E6E6;
+      --paper:#FFFFFF;--shell:#F4F4F4;--up:#1B7A3D;--dn:#9A0000;}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:"Montserrat",system-ui,sans-serif;background:var(--shell);color:var(--ink);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px 72px}
+.top{background:var(--ink);color:#fff;padding:26px 0 0}
+.top .wrap{padding-bottom:0}
+.top-row{display:flex;align-items:flex-start;justify-content:space-between;gap:28px;flex-wrap:wrap}
+.wordmark{font-size:15px;font-weight:800;letter-spacing:.14em;color:#fff}
+.top-meta{text-align:right;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--g1);line-height:1.9}
+.top-meta b{color:#fff;font-weight:600}
+.headline{margin-top:30px;padding-bottom:26px}
+.eyebrow{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--red-hot);font-weight:700}
+.headline h1{font-size:clamp(26px,4.2vw,42px);font-weight:800;letter-spacing:-.025em;line-height:1.06;margin-top:12px;color:#fff}
+.headline h1 em{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-weight:700;color:var(--g2)}
+.headline p{margin-top:12px;color:var(--g1);max-width:64ch;font-size:14px;line-height:1.6}
+.headline p b{color:#fff;font-weight:600}
+.control{background:#1E1E1E;border-top:1px solid #2C2C2C;padding:16px 0;position:sticky;top:0;z-index:40}
+.control .wrap{padding-bottom:0;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.control label{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--g1);font-weight:600}
+select{font-family:inherit;font-size:15px;font-weight:700;color:#fff;background:var(--ink);border:1px solid #3A3A3A;border-radius:2px;
+ padding:11px 40px 11px 15px;min-width:290px;cursor:pointer;appearance:none;
+ background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'><path d='M1 1l4.5 4.5L10 1' stroke='%23ED1B24' stroke-width='1.6' fill='none' stroke-linecap='square'/></svg>");
+ background-repeat:no-repeat;background-position:right 15px center}
+select:focus-visible{outline:2px solid var(--red-hot);outline-offset:2px}
+.tagline{font-size:11px;color:var(--g1);letter-spacing:.06em}
+.tagline b{color:#fff;font-weight:600}
+
+/* ---- Descubrimientos y próximos pasos ---- */
+.exec{margin-top:26px}
+.exec-head{display:flex;align-items:baseline;gap:10px;margin-bottom:4px;flex-wrap:wrap}
+.exec-head h3{font-size:12px;letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--ink)}
+.exec-sub{font-size:12px;color:var(--body);margin-bottom:18px}
+#execStatus{font-size:12px;color:var(--g1)}
+
+.inv-shift{background:var(--paper);border:1px solid var(--g3);border-left:3px solid var(--red);padding:18px 20px;margin-bottom:16px;display:none}
+.inv-shift-title{font-size:10px;letter-spacing:.18em;text-transform:uppercase;font-weight:800;color:var(--red);margin-bottom:14px}
+.ishift-row{margin-bottom:13px}.ishift-row:last-child{margin-bottom:0}
+.ishift-label{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;font-weight:700;margin-bottom:6px}
+.ishift-legend{font-size:10px;font-weight:600;color:var(--g1);letter-spacing:.04em}
+.ishift-bars{display:flex;flex-direction:column;gap:3px}
+.ishift-bar-track{height:7px;background:var(--g3);overflow:hidden}
+.ishift-bar{height:100%}
+
+.find{display:grid;gap:14px}
+.fc{background:var(--paper);border:1px solid var(--g3);padding:18px 22px}
+.fc.featured{border:2px solid var(--red);padding:22px 24px}
+.fc-badge{display:inline-block;background:var(--red);color:#fff;font-size:9px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;padding:4px 9px;border-radius:2px;margin-bottom:11px}
+.fc-stat{font-size:19px;font-weight:800;letter-spacing:-.02em;color:var(--red);line-height:1.25;margin-bottom:14px}
+.fc-row{margin-bottom:12px}.fc-row:last-child{margin-bottom:0}
+.fc-tag{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:800;color:var(--g1);margin-bottom:5px;display:block}
+.fc-tag.action{color:var(--red)}
+.fc-text{font-size:13.5px;line-height:1.62;color:var(--body)}
+.fc-action{font-size:13.5px;line-height:1.55;font-weight:700;color:var(--ink);padding:11px 14px;background:#FBF3F3;border-left:2px solid var(--red)}
+
+.alert{margin-top:16px;background:var(--paper);border-left:3px solid var(--g2);padding:14px 20px;display:flex;gap:14px;align-items:flex-start}
+.alert-k{font-size:10px;letter-spacing:.22em;text-transform:uppercase;font-weight:700;color:var(--g1);white-space:nowrap;padding-top:2px}
+.alert-t{font-size:12.5px;color:var(--body);line-height:1.55}
+.alert-t b{font-weight:700;color:var(--ink)}
+.sec{margin-top:44px}
+.sec-head{display:flex;align-items:baseline;gap:14px;padding-bottom:14px;border-bottom:2px solid var(--ink);margin-bottom:22px;flex-wrap:wrap}
+.sec-head h2{font-size:14px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.sec-head span{font-size:12px;color:var(--g1);margin-left:auto;letter-spacing:.04em}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:1px;background:var(--g3);border:1px solid var(--g3)}
+.kpi{background:var(--paper);padding:20px}
+.kpi-l{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--g1);font-weight:600}
+.kpi-v{font-size:clamp(23px,2.4vw,30px);font-weight:800;letter-spacing:-.03em;margin-top:9px;line-height:1;font-variant-numeric:tabular-nums}
+.kpi-d{font-size:11px;margin-top:8px;font-weight:700;letter-spacing:.04em}
+.kpi-d small{font-weight:500;color:var(--g1)}
+.up{color:var(--up)}.dn{color:var(--dn)}.flat{color:var(--g1)}
+.kpi.hero{background:var(--ink)}.kpi.hero .kpi-l,.kpi.hero .kpi-d small{color:var(--g1)}.kpi.hero .kpi-v{color:#fff}
+.kpi.lead .kpi-v{color:var(--red)}
+.panel{background:var(--paper);border:1px solid var(--g3)}
+.panel-pad{padding:22px 24px}
+.tbl-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--g1);font-weight:700;text-align:right;
+   padding:13px 12px;border-bottom:1px solid var(--g3);white-space:nowrap;background:var(--paper)}
+th:first-child{text-align:left}
+td{padding:12px;border-bottom:1px solid #F2F2F2;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td:first-child{text-align:left;font-weight:600;white-space:normal;min-width:170px}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#FAFAFA}
+.nil{color:var(--g2)}
+.up-txt{color:var(--up);font-weight:700}.dn-txt{color:var(--dn);font-weight:700}.flat-txt{color:var(--g1);font-weight:700}
+.tag{display:inline-block;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:3px 8px;border:1px solid var(--g2);color:var(--g1);border-radius:2px;margin-left:6px}
+.tag.paused{border-color:var(--g1);color:var(--g1);background:#F2F2F2}
+.tag.active{border-color:var(--up);color:var(--up);background:#EAF4EE}
+.rk{color:var(--g2);font-weight:800;font-size:11px;width:24px;text-align:right;padding-right:0}
+.cifra{font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.destaque{font-family:Georgia,"Times New Roman",serif;font-weight:700;font-style:italic}
+.chartbox{position:relative;height:290px}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:900px){.duo{grid-template-columns:1fr}}
+.note{font-size:11.5px;color:var(--g1);margin-top:11px;line-height:1.6}
+.compare{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid var(--g3)}
+.compare .side p:first-child{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--g1);font-weight:600;margin-bottom:6px}
+.compare .side .v{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1}
+.compare .side small{display:block;font-size:11px;color:var(--g1);margin-top:5px}
+.funnel{padding:6px 2px 2px}
+.fstep{margin-bottom:24px}.fstep:last-child{margin-bottom:0}
+.fmeta{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:9px;flex-wrap:wrap}
+.fname{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--g1)}
+.fnum{font-size:clamp(19px,2vw,24px);font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.fbar-track{height:13px;background:var(--g3);overflow:hidden}
+.fbar{height:100%;width:0;transition:width .7s cubic-bezier(.4,0,.2,1)}
+.fbar.f1{background:var(--g1)}
+.fbar.f2{background:var(--ink)}
+.fbar.f3{background:var(--red)}
+.frate{font-size:11.5px;color:var(--g1);margin-top:8px}
+.frate b{color:var(--ink);font-weight:700}
+.thumb{width:44px;height:44px;background:var(--g3);border-radius:2px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;overflow:hidden;position:relative}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb .fallback{display:none;align-items:center;justify-content:center;width:100%;height:100%}
+.creative-name{display:flex;align-items:center;gap:10px}
+.creative-name .cn-txt{display:flex;flex-direction:column;gap:2px}
+.creative-name .cn-txt span{font-size:10.5px;color:var(--g1);font-weight:500}
+.foot{margin-top:56px;padding-top:22px;border-top:1px solid var(--g2);display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-size:11px;color:var(--g1)}
+.foot b{color:var(--ink);font-weight:700}
+@media(max-width:640px){.top-meta{text-align:left}select{min-width:100%}.kpi{padding:16px}th,td{padding:10px 9px}.chartbox{height:250px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+@media print{body{background:#fff}.control{position:static}.sec{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="top-row">
+    <div class="wordmark">SHAKEAGAIN</div>
+    <div class="top-meta">Reporte mensual de medios<br><b>Julio 2026 (mes cerrado)</b></div>
+  </div>
+  <div class="headline">
+    <div class="eyebrow">iúnigo · Cuenta de medios</div>
+    <h1>Performance <em>· julio 2026</em></h1>
+    <p>Mes cerrado, del 1 al 31 de julio, comparado contra junio 2026. Google Ads, Meta Ads, Microsoft Ads y TikTok Ads. <b>Fuente única: métricas de plataforma vía Master Metrics.</b></p>
+  </div>
+</div></header>
+
+<div class="control"><div class="wrap">
+  <label for="filtro">Ver resultados de</label>
+  <select id="filtro" aria-label="Filtrar por plataforma">
+    <option value="total">Todas las plataformas (consolidado)</option>
+    <option value="google">Google Ads</option>
+    <option value="meta">Meta Ads</option>
+    <option value="bing">Microsoft Ads</option>
+    <option value="tiktok">TikTok Ads</option>
+  </select>
+  <div class="tagline" id="tagline">Los indicadores, los gráficos, las tablas y los descubrimientos se actualizan con la selección.</div>
+</div></div>
+
+<main class="wrap">
+
+  <!-- ============ DESCUBRIMIENTOS + PRÓXIMOS PASOS (contenido vía JSON externo) ============ -->
+  <section class="exec">
+    <div class="exec-head"><h3 id="execTitle">Descubrimientos y próximos pasos</h3><span id="execStatus"></span></div>
+    <p class="exec-sub">Qué detectamos en los datos del mes, por qué importa y qué proponemos hacer con eso.</p>
+
+    <div class="inv-shift" id="invShift">
+      <p class="inv-shift-title">Distribución de inversión · julio real → agosto (aproximado)</p>
+      <div id="invShiftRows"></div>
+      <p class="note">Valores de agosto aproximados, acordados con el equipo de cuenta a partir del análisis de tasa de cierre; no cierran exacto a 100% por redondeo.</p>
+    </div>
+
+    <div class="find" id="execList"></div>
+  </section>
+
+  <div class="alert">
+    <div class="alert-k">Cómo se mide</div>
+    <div class="alert-t" id="alertTxt"></div>
+  </div>
+
+  <!-- ============ KPIs ============ -->
+  <section class="sec">
+    <div class="sec-head"><h2>Indicadores del mes</h2><span id="kpiCtx">Todas las plataformas</span></div>
+    <div class="kpis" id="kpis"></div>
+    <p class="note" id="kpiNote"></p>
+  </section>
+
+  <!-- ============ GRÁFICOS COMPARATIVOS (solo consolidado) ============ -->
+  <section class="sec" id="secCompare">
+    <div class="sec-head"><h2>Comparación entre plataformas</h2><span>Julio vs. junio 2026</span></div>
+    <div class="duo">
+      <div class="panel panel-pad">
+        <p class="kpi-l" style="margin-bottom:4px">Comparación mensual</p>
+        <p style="font-size:13.5px;font-weight:600;margin-bottom:14px">Inversión y leads por plataforma</p>
+        <div class="chartbox"><canvas id="chPlat"></canvas></div>
+      </div>
+      <div class="panel panel-pad">
+        <p class="kpi-l" style="margin-bottom:4px">Comparación mensual</p>
+        <p style="font-size:13.5px;font-weight:600;margin-bottom:14px">Costo por lead por plataforma</p>
+        <div class="chartbox"><canvas id="chCpl"></canvas></div>
+      </div>
+    </div>
+    <div class="panel panel-pad" style="margin-top:22px">
+      <p class="kpi-l" style="margin-bottom:4px">Julio 2026</p>
+      <p style="font-size:13.5px;font-weight:600;margin-bottom:14px">Dónde se invirtió</p>
+      <div class="chartbox"><canvas id="chMix"></canvas></div>
+      <p class="note" id="leadsMixNote"></p>
+    </div>
+  </section>
+
+  <!-- ============ FUNNEL DE CONVERSIÓN (siempre, por plataforma) ============ -->
+  <section class="sec">
+    <div class="sec-head"><h2>Funnel de conversión</h2><span id="tEmbudo">Impresiones → clics → conversiones</span></div>
+    <div class="panel panel-pad">
+      <div class="funnel" id="funnel">
+        <div class="fstep">
+          <div class="fmeta"><div class="fname">Impresiones</div><div class="fnum" id="fImp">—</div></div>
+          <div class="fbar-track"><div class="fbar f1" id="fBarImp"></div></div>
+        </div>
+        <div class="fstep">
+          <div class="fmeta"><div class="fname">Clics</div><div class="fnum" id="fClic">—</div></div>
+          <div class="fbar-track"><div class="fbar f2" id="fBarClic"></div></div>
+          <div class="frate" id="fRateClic"></div>
+        </div>
+        <div class="fstep">
+          <div class="fmeta"><div class="fname">Conversiones (leads)</div><div class="fnum" id="fLead">—</div></div>
+          <div class="fbar-track"><div class="fbar f3" id="fBarLead"></div></div>
+          <div class="frate" id="fRateLead"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RANKING DE CAMPAÑAS (reemplaza el desglose por línea de trabajo) ============ -->
+  <section class="sec">
+    <div class="sec-head"><h2>Ranking de campañas</h2><span id="campCtx">Ordenado por leads de julio</span></div>
+    <div class="panel tbl-scroll">
+      <table>
+        <thead>
+          <tr><th></th><th>Campaña</th><th>Leads</th><th>CPL jul.</th><th>Var. CPL</th></tr>
+        </thead>
+        <tbody id="tbCamp"></tbody>
+      </table>
+    </div>
+    <p class="note">Las campañas de alcance en video (Meta, TikTok) trabajan sobre notoriedad, no tienen objetivo de lead y no entran en este ranking.</p>
+  </section>
+
+  <!-- ============ CREATIVOS META (solo Meta) ============ -->
+  <section class="sec" id="secMetaCreatives">
+    <div class="sec-head"><h2>Qué pasó con los creativos en Meta</h2><span>Always-On vs. Ads Mundial (pausado)</span></div>
+    <p style="font-size:13px;color:var(--body);margin-bottom:18px;max-width:74ch">En julio corrieron en simultáneo dos líneas: las piezas <b>Always-On</b>, vigentes desde noviembre, y una tanda temática <b>Ads Mundial</b> <span class="tag paused">Pausado</span>, que acompañó el Mundial durante el evento y hoy está fuera de rotación porque el Mundial ya terminó.</p>
+    <div class="duo">
+      <div class="panel panel-pad">
+        <p class="kpi-l" style="margin-bottom:14px">Captación de nuevos usuarios</p>
+        <div class="compare">
+          <div class="side"><p>Ads Mundial <span class="tag paused">Pausado</span></p><p class="v" style="color:var(--red)">$3.786</p><small>71 leads · $268.841 invertidos</small></div>
+          <div class="side" style="text-align:right"><p>Piezas Always-On</p><p class="v">$5.631</p><small>251 leads · $1.413.218 invertidos</small></div>
+        </div>
+        <p style="font-size:13px;line-height:1.6;color:var(--body)">Ads Mundial generó leads un 33% más baratos que las piezas Always-On, concentrando casi todo su resultado en una sola variante (63 leads a $3.486) con apenas el 13% del presupuesto de captación.</p>
+      </div>
+      <div class="panel panel-pad">
+        <p class="kpi-l" style="margin-bottom:14px">Remarketing</p>
+        <div class="compare">
+          <div class="side"><p>Ads Mundial <span class="tag paused">Pausado</span></p><p class="v">$5.891</p><small>55 leads · $324.002 invertidos</small></div>
+          <div class="side" style="text-align:right"><p>Piezas Always-On</p><p class="v" style="color:var(--red)">$5.132</p><small>173 leads · $887.865 invertidos</small></div>
+        </div>
+        <p style="font-size:13px;line-height:1.6;color:var(--body)">Acá el resultado fue inverso: Always-On rindió mejor, consistente con una audiencia bastante expuesta (17,1 impactos promedio por persona) más que con un tema de creativo.</p>
+      </div>
+    </div>
+
+    <p class="kpi-l" style="margin:28px 0 12px">Top 5 creativos · captación</p>
+    <div class="panel tbl-scroll">
+      <table>
+        <thead><tr><th></th><th>Creativo</th><th>Estado</th><th>Inversión</th><th>Leads</th><th>CPL</th></tr></thead>
+        <tbody id="tbMetaAdq"></tbody>
+      </table>
+    </div>
+
+    <p class="kpi-l" style="margin:22px 0 12px">Top 5 creativos · remarketing</p>
+    <div class="panel tbl-scroll">
+      <table>
+        <thead><tr><th></th><th>Creativo</th><th>Estado</th><th>Inversión</th><th>Leads</th><th>CPL</th></tr></thead>
+        <tbody id="tbMetaRmk"></tbody>
+      </table>
+    </div>
+    <p class="note">Miniaturas del creativo real, extraídas en vivo de la cuenta de Meta vía Master Metrics. Son imágenes con enlace temporal del CDN de Meta: si en algún momento no cargan, el recuadro muestra el ícono de formato como respaldo.</p>
+  </section>
+
+  <!-- ============ AUDIENCIAS META (solo Meta) ============ -->
+  <section class="sec" id="secMetaAudience">
+    <div class="sec-head"><h2>Quién convierte mejor en Meta</h2><span>Costo por lead por franja etaria · julio 2026</span></div>
+    <div class="panel tbl-scroll">
+      <table>
+        <thead>
+          <tr><th>Franja etaria</th><th>Inv. captación</th><th>Leads</th><th>CPL captación</th><th>Inv. remarketing</th><th>Leads</th><th>CPL remarketing</th></tr>
+        </thead>
+        <tbody id="tbEdad"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ BÚSQUEDAS GOOGLE (solo Google) ============ -->
+  <section class="sec" id="secGoogleSearch">
+    <div class="sec-head"><h2>Qué buscan las personas antes de llegar</h2><span>Búsquedas reales en Google Ads · julio 2026</span></div>
+    <div class="duo">
+      <div class="panel panel-pad">
+        <p class="kpi-l" style="color:var(--up);margin-bottom:4px">Lo que mejor funciona</p>
+        <p style="font-size:13.5px;font-weight:600;margin-bottom:14px">Búsquedas con costo por lead por debajo del promedio</p>
+        <table>
+          <thead><tr><th>Búsqueda</th><th>Inversión</th><th>Leads</th><th>CPL</th></tr></thead>
+          <tbody id="tbTermOk"></tbody>
+        </table>
+      </div>
+      <div class="panel panel-pad">
+        <p class="kpi-l" style="color:var(--red);margin-bottom:4px">Lo que conviene revisar</p>
+        <p style="font-size:13.5px;font-weight:600;margin-bottom:14px">Búsquedas caras o sin resultado</p>
+        <table>
+          <thead><tr><th>Búsqueda</th><th>Inversión</th><th>Leads</th><th>CPL</th></tr></thead>
+          <tbody id="tbTermMal"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="panel panel-pad" style="margin-top:22px;border-left:3px solid var(--red)">
+      <p class="kpi-l" style="color:var(--red);margin-bottom:10px">Inversión a redirigir</p>
+      <p style="font-size:13.5px;line-height:1.6;max-width:74ch;color:var(--body)">Un volumen consistente de búsquedas sobre seguros para autos de aplicación, remises y taxis —uso comercial— consumió cerca de $78.000 en julio con resultados dispares. Como iúnigo no cubre ese segmento, esa inversión pasa a exclusión negativa directa.</p>
+    </div>
+  </section>
+
+  <!-- ============ DISPOSITIVO GOOGLE (solo Google) ============ -->
+  <section class="sec" id="secGoogleDevice">
+    <div class="sec-head"><h2>Celular y computadora se comportan distinto</h2><span>Google Ads · julio 2026 vs. junio 2026</span></div>
+    <div class="panel tbl-scroll">
+      <table>
+        <thead>
+          <tr><th>Dispositivo</th><th>Inversión jul.</th><th>Leads</th><th>CPL jul.</th><th>Conversión jul.</th><th>Conversión jun.</th></tr>
+        </thead>
+        <tbody id="tbDisp"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="foot">
+    <div>Shake Again - Reporte de performance para <b>iúnigo</b></div>
+    <div><b>Fuente:</b> Master Metrics / Google Ads + Meta Ads + Microsoft Ads + TikTok Ads - Comparativa vs junio 2026 · Moneda ARS</div>
+  </div>
+</main>
+
+<!-- Contenido embebido de respaldo: si por algún motivo el navegador no encuentra o no puede
+     cargar iunigo_findings_julio_2026.js (archivos separados, carpeta distinta, etc.), el reporte
+     igual funciona con esta copia. El archivo .js externo, si está presente y carga bien, tiene
+     PRIORIDAD sobre esta copia — es el que conviene editar para actualizar contenido. -->
+<script>
+window.IUNIGO_FINDINGS_DEFAULT = {
+  "_meta": {
+    "cliente": "iúnigo",
+    "periodo": "Julio 2026",
+    "comparativo": "vs. junio 2026",
+    "actualizado": "2026-08-12"
+  },
+  "total": [
+    {
+      "id": "cierre-por-plataforma",
+      "featured": true,
+      "stat": "Bing cierra mejor, pero recibía la menor inversión",
+      "detectamos": "El análisis de cierre 2026 muestra que Bing tiene una tasa de cierre más alta que Meta y Google, aun cuando hasta julio concentraba apenas entre el 5% y el 9% de la inversión. Google, en cambio, recibía entre el 80% y el 90% del presupuesto histórico.",
+      "importa": "Estábamos poniendo la mayor parte del presupuesto en la plataforma de mayor volumen, no necesariamente en la de mejor calidad de cierre. Google sigue aportando el volumen principal —con un Conversion Rate global del sitio cercano al 1,02%— pero la diferencia de calidad entre plataformas justificó repensar la mezcla de inversión.",
+      "accion": "A partir de este análisis y de lo conversado con el equipo de iúnigo (Meli), en agosto migramos presupuesto hacia Meta y Bing para validar si sostienen volumen a la vez que mejoran la calidad de cierre. Distribución aproximada actual: Google 72% · Meta 18% · Bing 15% · TikTok 2%."
+    },
+    {
+      "id": "recuperacion-tracking-url",
+      "featured": true,
+      "stat": "Restauración del tracking de póliza digital",
+      "detectamos": "Tras el cambio de URL final implementado por el equipo de IT en el flujo de contratación online, identificamos la oportunidad de recuperar la medición completa del último paso de conversión.",
+      "importa": "Restablecer este punto de contacto nos permitirá volver a medir con precisión la conversión completa y optimizar las campañas por póliza digital cerrada, tal como se realizaba previo a junio.",
+      "accion": "Alinear con IT (según lo conversado con Meli) la inclusión de los parámetros identificadores en la URL final de agradecimiento: las palabras 'gracias' o 'thankyou', sumando '/TC' para compras con tarjeta de crédito y '/DD' para tarjeta de débito."
+    },
+    {
+      "id": "desktop-vs-mobile",
+      "featured": true,
+      "stat": "Desktop convierte más del doble que Mobile",
+      "detectamos": "En Google Ads, computadora convierte más del doble que celular (24,8% vs. 12,0%), y la brecha se ensanchó en julio.",
+      "importa": "El 79% de la inversión de Google está en celular, el dispositivo que peor convierte. No parece un problema de puja ni de audiencia: apunta a fricción en el flujo de cotización mobile.",
+      "accion": "Reforzar desktop con un ajuste de puja al alza para agosto, mientras se audita en paralelo el drop-off del flujo de cotización en celular."
+    },
+    {
+      "id": "cpl-eficiencia-promedio",
+      "detectamos": "El costo por adquisición global se mantiene dentro de los rangos de eficiencia previstos y por debajo del promedio anual objetivo ($10 - $12 USD).",
+      "importa": "En Microsoft Ads, la campaña Non-Brand se mantuvo estable en $5 USD respecto a junio, absorbiendo un ajuste puntual en Brand ($9 USD en julio). La combinación de campañas mantiene el promedio saludable y bajo control.",
+      "accion": "Ajustar levemente la puja de marca en Microsoft para optimizar la eficiencia marginal sin sacrificar volumen ni posición competitiva."
+    }
+  ],
+  "google": [
+    {
+      "id": "google-desktop-vs-mobile",
+      "featured": true,
+      "stat": "Desktop convierte más del doble que Mobile",
+      "detectamos": "Computadora convierte más del doble que celular (24,8% vs. 12,0%) y la brecha se ensanchó en julio.",
+      "importa": "El 79% de la inversión está en celular, el dispositivo que peor convierte: la oportunidad más grande del trimestre probablemente esté en el flujo de cotización mobile, no en puja ni audiencia.",
+      "accion": "Subir puja en desktop para agosto y auditar el drop-off por paso en el flujo de cotización mobile, sin esperar a resolver ambas cosas en simultáneo."
+    },
+    {
+      "id": "demand-gen-awareness",
+      "featured": true,
+      "stat": "Demand Gen impulsa la captura de marca",
+      "detectamos": "La campaña de Generación de Demanda cumple de forma consistente su función estratégica dentro del embudo: capturar la primera impresión del usuario y generar visibilidad inicial.",
+      "importa": "Este formato de cobertura superior del embudo prepara al usuario para que luego busque la marca proactivamente y convierta a través de las campañas de Búsqueda (Brand). No se esperan conversiones directas de ultimo clic en este formato.",
+      "accion": "Evaluar el rendimiento de Generación de Demanda a través de métricas de alcance, interacción y asistencia a la conversión, optimizando sus creativos para maximizar el tráfico cualificado hacia Búsqueda."
+    },
+    {
+      "id": "pmax-eficiencia",
+      "detectamos": "Búsqueda de marca mejoró su CPL 52% mientras Máximo Rendimiento subió 10,1% recibiendo más presupuesto.",
+      "importa": "Máximo Rendimiento parece estar perdiendo eficiencia de asignación a medida que escala, posiblemente absorbiendo tráfico de menor intención.",
+      "accion": "Acotar el público 'similar a' y aplicar las exclusiones de uso comercial antes de sumar más presupuesto a esa campaña."
+    },
+    {
+      "id": "keywords-intencion",
+      "detectamos": "Las búsquedas con mejor costo por lead tienen intención de comparar y simular ('simulador', 'comparador'), no de comprar directamente.",
+      "importa": "Coincide con el posicionamiento de iúnigo —resolver la cotización sin llamadas— y sugiere que ampliar ese tipo de keywords tiene más recorrido que subir puja en las genéricas actuales.",
+      "accion": "Sumar variantes de keywords de comparación/simulación en agosto y excluir de forma directa las búsquedas de uso comercial y de intención ajena (~$178.000 recuperables entre ambas)."
+    }
+  ],
+  "meta": [
+    {
+      "id": "ads-mundial-vs-alwayson",
+      "featured": true,
+      "stat": "Ads Mundial: -33% de CPL con la misma audiencia",
+      "detectamos": "Ads Mundial logró un CPL 33% más bajo que las piezas Always-On en captación, con la misma audiencia.",
+      "importa": "El mensaje directo y fresco rindió mejor que el copy que lleva ocho meses sin cambios: el problema no era la audiencia, era el creativo.",
+      "accion": "Actualizar 1 o 2 piezas Always-On con ese mismo principio (sin la temática Mundial, ya cerrada) y testearlas en paralelo durante dos semanas."
+    },
+    {
+      "id": "remarketing-frecuencia",
+      "detectamos": "En remarketing la frecuencia llegó a 17,1 impactos promedio por persona, más que en junio.",
+      "importa": "A esa frecuencia cualquier pieza se desgasta: no es un problema de creativo, es de tamaño de audiencia.",
+      "accion": "Ampliar la ventana de audiencia de remarketing antes de sumar creativos nuevos ahí."
+    },
+    {
+      "id": "edad-calidad",
+      "detectamos": "El costo por lead en captación sube con la edad: 25-34/35-44 años rinde a $4.348 promedio, contra $6.839 en 55 en adelante.",
+      "importa": "El copy Always-On parece resonar mejor en públicos ya familiarizados con la marca que en públicos mayores.",
+      "accion": "Reasignar el presupuesto que hoy recibe la franja 18-24 (sin leads en julio) hacia 25-44."
+    }
+  ],
+  "bing": [
+    {
+      "id": "bing-tasa-cierre",
+      "featured": true,
+      "stat": "Bing cierra mejor que Meta y Google",
+      "detectamos": "El análisis de cierre 2026 posiciona a Bing con mejor tasa de cierre que Meta y Google, a pesar de tener la menor inversión histórica.",
+      "importa": "Es la razón principal por la que el equipo decidió migrar presupuesto hacia esta plataforma en agosto: no es solo una apuesta de volumen, es una apuesta de calidad.",
+      "accion": "Sostener el incremento de presupuesto en agosto (dentro de la distribución acordada, ~15% del total) y monitorear si la tasa de cierre se mantiene a mayor escala."
+    },
+    {
+      "id": "bing-estabilidad-cpl",
+      "detectamos": "La campaña Non-Brand en Microsoft Ads mantuvo su excelente nivel de eficiencia en $5 USD durante julio, mientras que Brand cerró el mes en $9 USD.",
+      "importa": "El promedio combinado de la plataforma sigue ubicado por debajo de la media histórica anual ($10 - $12 USD), confirmando la rentabilidad de la cuenta en este canal.",
+      "accion": "Realizar un ajuste fino sobre las pujas de marca para maximizar el margen de rendimiento sin descuidar la captura de volumen."
+    }
+  ],
+  "tiktok": [
+    {
+      "id": "tiktok-fatiga-creativa",
+      "detectamos": "CTR y tasa de conversión bajaron juntos (-16,5%) con la inversión casi estable, mientras 'Video - Diagrama de flujo' sigue rindiendo mejor que 'Video - Superhéroe' ($3.392 vs. $4.337 de CPL).",
+      "importa": "Es la firma típica de una pieza que ya lleva tiempo en rotación, más que un problema de puja.",
+      "accion": "Priorizar presupuesto en 'Video - Diagrama de flujo' y sumar una variante creativa nueva a la campaña de leads en las próximas dos semanas."
+    },
+    {
+      "id": "tiktok-escala-chica",
+      "detectamos": "TikTok recibe hoy apenas el 2% de la inversión del portfolio, la porción más chica de las cuatro plataformas.",
+      "importa": "Con una base tan chica, cualquier lectura de tendencia (CTR, CVR) tiene más ruido estadístico que en Google o Meta.",
+      "accion": "Mantener el presupuesto estable un mes más antes de sacar conclusiones fuertes sobre el canal."
+    }
+  ]
+};
+</script>
+<script src="iunigo_findings_julio_2026.js"></script>
+<script>
+(function(){
+"use strict";
+
+var RED="#9A0000", INK="#141414", G1="#9E9E9E", G2="#CCCCCC";
+var FINDINGS_FILE = "iunigo_findings_julio_2026.js";
+
+// ---------- DATOS (fuente única: Master Metrics) ----------
+var D = {
+  total:{ label:"Todas las plataformas",
+    jul:{inv:24135889, leads:2719, clics:23076, imp:3646571},
+    jun:{inv:25785218, leads:2877, clics:24709, imp:3092669}, share:100 },
+  google:{ label:"Google Ads",
+    jul:{inv:18362752, leads:1919, clics:13965, imp:535110},
+    jun:{inv:20434820, leads:2091, clics:14179, imp:542050}, share:70.6 },
+  meta:{ label:"Meta Ads",
+    jul:{inv:3095489, leads:550, clics:4930, imp:1380556},
+    jun:{inv:2839781, leads:510, clics:6337, imp:1129524}, share:20.2 },
+  bing:{ label:"Microsoft Ads (con IVA)",
+    jul:{inv:2051216, leads:151, clics:2489, imp:416871},
+    jun:{inv:1902770, leads:169, clics:2666, imp:275579}, share:5.6 },
+  tiktok:{ label:"TikTok Ads",
+    jul:{inv:626432, leads:99, clics:1692, imp:1314034},
+    jun:{inv:607847, leads:107, clics:1527, imp:1145516}, share:3.6 }
+};
+
+// Distribución de inversión de agosto, aproximada — insumo de negocio (no proviene de Master Metrics),
+// acordado con el equipo de cuenta a partir del análisis de tasa de cierre 2026.
+var AGO_TARGET = { google:72, meta:18, bing:15, tiktok:2 };
+
+var CAMP = [
+  {p:"google", n:"Google · Máximo rendimiento", ij:6589205, iu:6499323, lj:676, lu:734},
+  {p:"google", n:"Google · Buscador, búsquedas genéricas", ij:6658867, iu:6359940, lj:677, lu:735},
+  {p:"google", n:"Google · Buscador, competencia", ij:2684321, iu:2533333, lj:240, lu:235},
+  {p:"google", n:"Google · Buscador, marca", ij:2004757, iu:4620579, lj:327, lu:358},
+  {p:"google", n:"Google · Generación de demanda", ij:425601, iu:421645, lj:null, lu:29, nota:"Cambio de medición"},
+  {p:"meta", n:"Meta · Captación de nuevos usuarios", ij:1682058, iu:1348557, lj:322, lu:283},
+  {p:"meta", n:"Meta · Remarketing", ij:1211868, iu:1290281, lj:228, lu:226},
+  {p:"meta", n:"Meta · Video de alcance", ij:201563, iu:200944, lj:null, lu:null, nota:"Notoriedad"},
+  {p:"bing", n:"Microsoft · Búsquedas genéricas", ij:1386332, iu:1397416, lj:113, lu:132, nota:"IVA incl."},
+  {p:"bing", n:"Microsoft · Marca", ij:664884, iu:505353, lj:38, lu:37, nota:"IVA incl."},
+  {p:"tiktok", n:"TikTok · Generación de leads", ij:370769, iu:360427, lj:99, lu:107},
+  {p:"tiktok", n:"TikTok · Alcance", ij:255663, iu:247419, lj:null, lu:null, nota:"Notoriedad"}
+];
+
+var EDAD = [
+  {e:"18 a 24", ia:16946, la:0, ir:17985, lr:11},
+  {e:"25 a 34", ia:263023, la:60, ir:169020, lr:47},
+  {e:"35 a 44", ia:462842, la:107, ir:267620, lr:49},
+  {e:"45 a 54", ia:446732, la:80, ir:280130, lr:53},
+  {e:"55 a 64", ia:296130, la:46, ir:257596, lr:35},
+  {e:"65 o más", ia:196294, la:26, ir:219338, lr:33}
+];
+
+var TERM_OK = [
+  {t:"simulador de seguro de auto", i:51221, l:9, c:5691},
+  {t:"comparador seguro auto", i:90777, l:14, c:6484},
+  {t:"cotizar seguro auto online", i:45645, l:7, c:6521},
+  {t:"seguros", i:77971, l:11.5, c:6789},
+  {t:"galicia seguros", i:26747, l:5, c:5349},
+  {t:"mercantil andina", i:33645, l:5, c:6729},
+  {t:"mapfre seguros auto", i:36656, l:5, c:7331}
+];
+
+var TERM_MAL = [
+  {t:"sens seguros", i:36724, l:1, c:36724},
+  {t:"la nueva seguros", i:30030, l:1, c:30030},
+  {t:"seguro rivadavia", i:74163, l:3, c:24721},
+  {t:"seguros baratos para autos", i:25122, l:1, c:25122},
+  {t:"seguro online auto", i:54253, l:3, c:18084},
+  {t:"triunfo seguros", i:17077, l:0, c:null},
+  {t:"seguro de responsabilidad civil", i:18734, l:0, c:null}
+];
+
+var DISP = [
+  {d:"Celular", i:14335520, l:1439, c:9966, crj:11.99, cru:13.60},
+  {d:"Computadora", i:3880346, l:460, c:8444, crj:24.80, cru:20.92},
+  {d:"Tablet", i:86135, l:9, c:9547, crj:10.02, cru:11.60},
+  {d:"TV conectada", i:60752, l:12, c:4955, crj:55.73, cru:36.36}
+];
+
+// Detalle por creativo — Meta (ad-level, Master Metrics). Se muestran top 5 por leads.
+var META_ADQ = [
+  {n:"Banner_4_Nov25", tipo:"banner", estado:"activo", inv:1196912, leads:211},
+  {n:"Banner_4_Mundial_Jul26", tipo:"banner", estado:"pausado", inv:219613, leads:63},
+  {n:"Banner_6_Nov25", tipo:"banner", estado:"activo", inv:193936, leads:29},
+  {n:"Banner_2_Mundial_Jul26", tipo:"banner", estado:"pausado", inv:41960, leads:7},
+  {n:"Banner_5_Nov25", tipo:"banner", estado:"activo", inv:11044, leads:4},
+  {n:"Video_1_Nov25", tipo:"video", estado:"activo", inv:3650, leads:4},
+  {n:"Banner_1_Nov25", tipo:"banner", estado:"activo", inv:7675, leads:3},
+  {n:"Banner_3_Mundial_Jul26", tipo:"banner", estado:"pausado", inv:2513, leads:1},
+  {n:"Banner_Mundial_Jul26", tipo:"banner", estado:"pausado", inv:2749, leads:0},
+  {n:"Banner_5_Mundial_Jul26", tipo:"banner", estado:"pausado", inv:2005, leads:0}
+];
+var META_RMK = [
+  {n:"Banner_4_Nov25", tipo:"banner", estado:"activo", inv:766066, leads:139},
+  {n:"Banner_4_Mundial_Jul26", tipo:"banner", estado:"pausado", inv:269535, leads:45},
+  {n:"Banner_3_Nov25", tipo:"banner", estado:"activo", inv:62023, leads:16},
+  {n:"Video_1_Nov25", tipo:"video", estado:"activo", inv:39635, leads:13},
+  {n:"Banner_2_Mundial_Jul26", tipo:"banner", estado:"pausado", inv:35097, leads:4},
+  {n:"Banner_2_Nov25", tipo:"banner", estado:"activo", inv:15859, leads:3},
+  {n:"Banner_5_Mundial_Jul26", tipo:"banner", estado:"pausado", inv:5312, leads:3},
+  {n:"Banner_3_Mundial_Jul26", tipo:"banner", estado:"pausado", inv:7017, leads:2},
+  {n:"Banner_6_Nov25", tipo:"banner", estado:"activo", inv:4282, leads:2},
+  {n:"Banner_Mundial_Jul26", tipo:"banner", estado:"pausado", inv:7040, leads:1}
+];
+
+// URLs de imagen reales del creativo, vía Master Metrics (ad_image_url) — Meta únicamente.
+// Son URLs firmadas del CDN de Meta (scontent-*.fbcdn.net) con expiración; si dejan de cargar,
+// el fallback visual las reemplaza automáticamente por el ícono de formato.
+var META_IMG = {
+  "Banner_5_Nov25": "https://scontent-ord5-1.xx.fbcdn.net/v/t45.1600-4/587063949_26070653009185887_1250564408598441014_n.png?_nc_cat=108&ccb=1-7&_nc_ohc=ohf-BqO5YokQ7kNvwHXjQTC&_nc_oc=AdrYNUPwsrDks_zVL-vQqE-be_FD4zYMyYarM63mPSduirQMzfr4JOzgAW9sCG3hiQs&_nc_zt=1&_nc_ht=scontent-ord5-1.xx&edm=AOgd6ZUEAAAA&_nc_gid=CWVdpPZAUX0wQuaQiAnGew&_nc_tpa=Q5bMBQFaIQEgZgpc_RXWyxhu05hv_Dgc41XTS-4dlLM5KJZIZoKvmeZSC48zgoGQcoGsUgbNTeEYGVoq&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=52f3c4&_nc_sid=58080a&oh=00_AQFmTa4w6gLuCq0u9-u7FfjH29hjxXl2_NTNrpaP5xEIyw&oe=6A7BBFBC",
+  "Banner_4_Nov25": "https://scontent-ord5-1.xx.fbcdn.net/v/t45.1600-4/585279999_26070653329185855_5322552150558644291_n.png?_nc_cat=105&ccb=1-7&_nc_ohc=5dQhAoQe_5kQ7kNvwEAG0LH&_nc_oc=AdoyJRLOICxrAF381Q8_pbiUIrMGwBOAVg16ssY-nnK6_vZVvk4l8nBkrIPDNlmd3r8&_nc_zt=1&_nc_ht=scontent-ord5-1.xx&edm=AOgd6ZUEAAAA&_nc_gid=CWVdpPZAUX0wQuaQiAnGew&_nc_tpa=Q5bMBQEWJBLXcoLZbt6ON1DR1vSjbJxVa_xjE7O9KP6Ophx0zR3AeqINqAYmugqoXOO2-debOByfQGtC&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=52f3c4&_nc_sid=58080a&oh=00_AQEbqL4BInv9YX-MBf8KlsGLrRLg1PFkiDM5ikVzTiF0cg&oe=6A7BD8AB",
+  "Banner_6_Nov25": "https://scontent-ord5-1.xx.fbcdn.net/v/t45.1600-4/584450508_26070652882519233_4257906737742596815_n.png?_nc_cat=101&ccb=1-7&_nc_ohc=iP6hvc9WPUcQ7kNvwGYRcAe&_nc_oc=AdosK82Bom3PntU93QD8J1vGQg4-8nNBsXdh8wJYWjXIE3j0_6l4CCCntwiCNWgt4VQ&_nc_zt=1&_nc_ht=scontent-ord5-1.xx&edm=AOgd6ZUEAAAA&_nc_gid=CWVdpPZAUX0wQuaQiAnGew&_nc_tpa=Q5bMBQEwnaGAK_qhaLep6qaaojRsZ-UZFpaMhosIm9Dcqf4sNxDyZ62_35uAJTpuYS851qJfafLVg2ud&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=52f3c4&_nc_sid=58080a&oh=00_AQH9Y6EslQHayGAEDM-Xl7zFdfTFsYJRTxASprZM95mbVg&oe=6A7BC8A9",
+  "Video_1_Nov25": "https://scontent-ord5-2.xx.fbcdn.net/v/t15.5256-10/585206993_32566714592944014_6582995819612182549_n.jpg?_nc_cat=102&ccb=1-7&_nc_ohc=g8XrxRDMfZcQ7kNvwEqWgd4&_nc_oc=AdoLRJJbLALNjRUN9j16bFRnj3sxazy8ZkjdKi1bPOB7RraIpy6FVPAyAUWJeNis18Y&_nc_zt=23&_nc_ht=scontent-ord5-2.xx&edm=AOgd6ZUEAAAA&_nc_gid=CWVdpPZAUX0wQuaQiAnGew&_nc_tpa=Q5bMBQFCfZrdURQR9J50JjMu1bDLoxZmfPtuwH0ruLRqUnVvapm6kNHThx7SwUGivXGhonCN7iNxmn4J&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=b696e2&_nc_sid=58080a&oh=00_AQFgnwNansuk08NUmvVpagGbcPFW7jEIjkIsHp4ORfSdmQ&oe=6A7BB8F2",
+  "Banner_1_Nov25": "https://scontent-ord5-2.xx.fbcdn.net/v/t45.1600-4/584921310_26070623612522160_5629565078511421212_n.png?_nc_cat=102&ccb=1-7&_nc_ohc=6q8lUN5d8sAQ7kNvwEWgWbf&_nc_oc=AdoRrO8jRVLurKNy-7u_lcglPnVSpM0NqI6CdL_BK4l77u4FY2D7Wrv9G0uvzj8JiBg&_nc_zt=1&_nc_ht=scontent-ord5-2.xx&edm=AOgd6ZUEAAAA&_nc_gid=CWVdpPZAUX0wQuaQiAnGew&_nc_tpa=Q5bMBQHUiooxEQMfYG2DFamUEd9Xs8AXq97eW3yaI247xDsi6pA1xgQsE6lgsaOqCBiKDX8CydO2twAt&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=52f3c4&_nc_sid=58080a&oh=00_AQGUW0rvkqi5SBvN9x5YtaU566JPiHELKpF1moUHnn9AjA&oe=6A7BC0A5",
+  "Banner_3_Nov25": "https://scontent-ord5-1.xx.fbcdn.net/v/t45.1600-4/586526629_26070652559185932_7297555952911552508_n.png?_nc_cat=111&ccb=1-7&_nc_ohc=cDJNEBh7FlcQ7kNvwHYfaVb&_nc_oc=Adq-m_LRqE12LDmWjGw_6Bh22btcCQKaoud2Pmii2dwK57QSU8dPXVWX4q1G14trtUE&_nc_zt=1&_nc_ht=scontent-ord5-1.xx&edm=AOgd6ZUEAAAA&_nc_gid=CWVdpPZAUX0wQuaQiAnGew&_nc_tpa=Q5bMBQFZaOdq9_TE2UpMVvXjePse1JOrHwsMA7LNP6UaeM-DgkvEybe2XeiYirNIQ4_qCAIxNEEd21w5&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=52f3c4&_nc_sid=58080a&oh=00_AQERIVbVkq5rNmDlTUlEASVm91ONXowxBb21TAhWVImtLQ&oe=6A7BDF02",
+  "Banner_2_Nov25": "https://scontent-ord5-1.xx.fbcdn.net/v/t45.1600-4/585007192_26070651632519358_6594795014457743525_n.png?_nc_cat=109&ccb=1-7&_nc_ohc=Ed1IKq9vv0IQ7kNvwGD5HXu&_nc_oc=Adr5WkYMsX9qy83vssyx0BPsQxOfra2jZ1RyPYCdGaHlkNCk3wXrSTHopp3mUbyZkcY&_nc_zt=1&_nc_ht=scontent-ord5-1.xx&edm=AOgd6ZUEAAAA&_nc_gid=CWVdpPZAUX0wQuaQiAnGew&_nc_tpa=Q5bMBQGYLoPAC-Sv2NR6rIPqDw8ipeT2ghJDPWzfK-x13VJxl7py3Tj17_i5bLbylwn02DBQUPoGVUSD&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=52f3c4&_nc_sid=58080a&oh=00_AQHQEC5QG07jW1tx4DcAwt6GgmtpeIErKD23KHVt9ZQO3w&oe=6A7BE242",
+  "Banner_Mundial_Jul26": "https://scontent-ord5-2.xx.fbcdn.net/v/t45.1600-4/739125547_3578433518978702_8842368315234387188_n.png?_nc_cat=110&ccb=1-7&_nc_ohc=FUfYVjNSlu8Q7kNvwEGh_lV&_nc_oc=AdoJM8RrC1J4fCfCoqx6p8DR6YiWZsrcZc-67McV5EZotUCS9COGxUfM-AaAYlIg9CE&_nc_zt=1&_nc_ht=scontent-ord5-2.xx&edm=AOgd6ZUEAAAA&_nc_gid=CWVdpPZAUX0wQuaQiAnGew&_nc_tpa=Q5bMBQFj3ZvnpFBzo1SBBkZ3bH9KQEseY3x_mlUdpfn0rOtj5MNOKKgPAHzjOMdnpYXmNmS_rndB1AyC&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=52f3c4&_nc_sid=58080a&oh=00_AQH-PiEqPsusaZfTxLPzvJrWkVE1jiwQfCxQMVQVqaSfXQ&oe=6A7BDE2E",
+  "Banner_2_Mundial_Jul26": "https://scontent-ord5-2.xx.fbcdn.net/v/t45.1600-4/737846415_3578433485645372_6337103564197811900_n.jpg?_nc_cat=110&ccb=1-7&_nc_ohc=gLP4o9x8PaYQ7kNvwGEct9A&_nc_oc=AdrzfgTB3dFTJTNvzFh2n-FMJxTuFf7IMKnRK4xQOIYvr92YNbFTzYKIHl-0YMdtsHs&_nc_zt=1&_nc_ht=scontent-ord5-2.xx&edm=AOgd6ZUEAAAA&_nc_gid=CWVdpPZAUX0wQuaQiAnGew&_nc_tpa=Q5bMBQGtkV7JXr3jMRNfN0C1SqhUOmm0MbAaQvO-2qnp-rFKzIqPTHY-wpeGAw36P62jZntbcoBSlsSW&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=52f3c4&_nc_sid=58080a&oh=00_AQFi52S8JcGZEQ4OTJyc1mzi1aRHy40tssLsbgal0P470w&oe=6A7BE9D5",
+  "Banner_3_Mundial_Jul26": "https://scontent-ord5-2.xx.fbcdn.net/v/t45.1600-4/737383752_3578433475645373_5432771745699493599_n.jpg?_nc_cat=100&ccb=1-7&_nc_ohc=Hf1k-HcPm5oQ7kNvwEqyqnR&_nc_oc=AdpiXgX1Tp7pTV3z7GvD0X5axpcz-1vfeJ7IRtcbOzZruuQLzzqVZIn_zw3QJxJE6xA&_nc_zt=1&_nc_ht=scontent-ord5-2.xx&edm=AOgd6ZUEAAAA&_nc_gid=CWVdpPZAUX0wQuaQiAnGew&_nc_tpa=Q5bMBQEN4tbzfJMyK2A6tYL7_-CZRmvQoploDx61CDOKm24ds3_FBdQEW_fRNWZMnLjgppA-dD4v4gJv&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=52f3c4&_nc_sid=58080a&oh=00_AQGO17zdjMk9l5BATSnICRkTZxbNRQFt_QAMAvvT0OzEDw&oe=6A7BC230",
+  "Banner_4_Mundial_Jul26": "https://scontent-ord5-1.xx.fbcdn.net/v/t45.1600-4/739125228_3578433455645375_3915059285627657328_n.jpg?_nc_cat=101&ccb=1-7&_nc_ohc=XsKW2XOtLokQ7kNvwEB5KaH&_nc_oc=AdrMGjDoOjbGHPzmzKu4sb4PCrEGgSLltlJkv5j9A1DyxI_Av6tjDeZ9G3MxOQkOdFA&_nc_zt=1&_nc_ht=scontent-ord5-1.xx&edm=AOgd6ZUEAAAA&_nc_gid=CWVdpPZAUX0wQuaQiAnGew&_nc_tpa=Q5bMBQFv0ps_WqU6GYFrFROnMO3ifbw5V2Gty7Ud3bzAp3yBRrsdvWI1jmGV6ERFIxLzYHbC6RJcqvI6&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=52f3c4&_nc_sid=58080a&oh=00_AQFOexVyL8V9ZbUvNpyzAWSvpXxg6x4qE0l4ZTkCy0Xu4g&oe=6A7BD8DC",
+  "Banner_5_Mundial_Jul26": "https://scontent-ord5-1.xx.fbcdn.net/v/t45.1600-4/739125457_3578433465645374_1035632355486535289_n.jpg?_nc_cat=109&ccb=1-7&_nc_ohc=89c-DDCxZpkQ7kNvwE0KWc5&_nc_oc=Adr8uPl1kCEiD7uIFrkTUwfXcsxK15Ppqhz3q0fBAVm8G7QiM3d2RnWTotN7KVMDA60&_nc_zt=1&_nc_ht=scontent-ord5-1.xx&edm=AOgd6ZUEAAAA&_nc_gid=CWVdpPZAUX0wQuaQiAnGew&_nc_tpa=Q5bMBQFg6mBzINhixWbq667I4TBqx0zxtFHgQ-h6Th85T5j0V5cKozkggu-FlfXbO2sPgwmFHeGVMecg&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=52f3c4&_nc_sid=58080a&oh=00_AQErYicd21qDfUU0HROsl7KNmwy42mt_UreBXfwHShkz0g&oe=6A7BEE6E"
+};
+
+// ---------- FORMATO ----------
+function n0(v){ return new Intl.NumberFormat("es-AR",{maximumFractionDigits:0}).format(Math.round(v)); }
+function ars(v){ return "$" + n0(v); }
+function pct(v,d){ return new Intl.NumberFormat("es-AR",{minimumFractionDigits:d||1,maximumFractionDigits:d||1}).format(v) + "%"; }
+function varia(a,b){ if(!b || b===0) return null; return ((a-b)/b)*100; }
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+function dlt(vPct, goodDown){
+  if(vPct===null || !isFinite(vPct)) return '<div class="kpi-d flat">&mdash; <small>vs junio</small></div>';
+  var abs = Math.abs(vPct);
+  var flat = abs < 0.5;
+  var cls = flat ? "flat" : ((vPct>0) !== !!goodDown ? "up" : "dn");
+  var arrow = flat ? "=" : (vPct>0 ? "\u25B2" : "\u25BC");
+  return '<div class="kpi-d '+cls+'">'+arrow+' '+pct(abs,1)+' <small>vs junio</small></div>';
+}
+function cell(vPct, tipo){
+  if(vPct===null || !isFinite(vPct)) return '<span class="nil">—</span>';
+  var s = (vPct>=0?"+":"") + pct(vPct,1);
+  if(tipo==="alto") return '<span class="'+(vPct>=0?"up-txt":"dn-txt")+'">'+s+'</span>';
+  if(tipo==="bajo") return '<span class="'+(vPct<=0?"up-txt":"dn-txt")+'">'+s+'</span>';
+  return '<span class="flat-txt">'+s+'</span>';
+}
+
+// ---------- DESCUBRIMIENTOS (contenido cargado desde JSON externo) ----------
+var FINDINGS = null;
+
+function pintarInvShift(){
+  var order = ["google","meta","bing","tiktok"];
+  var html = order.map(function(k){
+    var jul = D[k].jul.inv / D.total.jul.inv * 100;
+    var ago = AGO_TARGET[k];
+    var label = D[k].label.replace(" (con IVA)","");
+    var up = ago > jul + 0.3, down = ago < jul - 0.3;
+    var cls = up ? "up-txt" : (down ? "dn-txt" : "flat-txt");
+    var arrow = up ? "\u25B2" : (down ? "\u25BC" : "=");
+    return '<div class="ishift-row">'+
+      '<div class="ishift-label"><span>'+label+'</span><span class="ishift-legend">JUL '+pct(jul,0)+' &rarr; AGO '+
+        '<span class="'+cls+'">'+pct(ago,0)+' '+arrow+'</span></span></div>'+
+      '<div class="ishift-bars">'+
+        '<div class="ishift-bar-track"><div class="ishift-bar" style="width:'+jul+'%;background:var(--g2)"></div></div>'+
+        '<div class="ishift-bar-track"><div class="ishift-bar" style="width:'+ago+'%;background:var(--red)"></div></div>'+
+      '</div></div>';
+  }).join("");
+  document.getElementById("invShiftRows").innerHTML = html;
+}
+
+// Contenido de "Cómo se mide" — criterio de conversión por plataforma. Fijo, no editable vía JS externo.
+var ALERT = {
+  total:'Google y Microsoft computan la <b>cotización de seguro finalizada</b>; Meta computa el <b>formulario completo</b> (Website Complete Registration); TikTok computa el <b>evento de conversión de formulario</b>. El costo por lead consolidado es una referencia de escala entre plataformas con criterios de medición distintos, no un comparativo puro.',
+  google:'Esta cuenta computa la <b>cotización de seguro finalizada</b> como conversión. La campaña de generación de demanda está en transición de medición y no se refleja en el costo por lead de julio.',
+  meta:'Esta cuenta computa el <b>formulario completo</b> (Website Complete Registration) como lead. La campaña de alcance en video no tiene objetivo de lead y no participa del cálculo de costo por lead.',
+  bing:'Esta cuenta computa la <b>conversión de cotización</b>. La inversión incluye el 21% de IVA sobre el gasto en dólares, convertido a $1.550.',
+  tiktok:'Esta cuenta computa el <b>evento de conversión de formulario</b>. La campaña de alcance no tiene objetivo de lead.'
+};
+
+function pintarDescubrimientos(k){
+  document.getElementById("execTitle").textContent = k==="total" ? "Descubrimientos y próximos pasos · portfolio" : "Descubrimientos y próximos pasos · " + D[k].label;
+  document.getElementById("invShift").style.display = (k==="total") ? "block" : "none";
+  document.getElementById("alertTxt").innerHTML = ALERT[k] || "";
+
+  if(!FINDINGS){
+    document.getElementById("execList").innerHTML = '<div class="fc"><span class="fc-tag action">Atención</span><div class="fc-text">No se encontró <b>'+esc(FINDINGS_FILE)+'</b>. Verificá que el archivo esté en la misma carpeta que este HTML.</div></div>';
+    return;
+  }
+  var items = FINDINGS[k] || [];
+  document.getElementById("execList").innerHTML = items.map(function(f){
+    var cls = f.featured ? "fc featured" : "fc";
+    var badge = f.featured ? '<span class="fc-badge">Prioridad alta</span>' : "";
+    var stat = (f.featured && f.stat) ? '<div class="fc-stat">'+esc(f.stat)+'</div>' : "";
+    return '<div class="'+cls+'">'+badge+stat+
+      '<div class="fc-row"><span class="fc-tag">Qué detectamos</span><div class="fc-text">'+esc(f.detectamos)+'</div></div>'+
+      '<div class="fc-row"><span class="fc-tag">Por qué importa</span><div class="fc-text">'+esc(f.importa)+'</div></div>'+
+      '<div class="fc-row"><span class="fc-tag action">Qué hacemos</span><div class="fc-action">'+esc(f.accion)+'</div></div>'+
+    '</div>';
+  }).join("");
+}
+
+function cargarFindings(){
+  var externo = window.IUNIGO_FINDINGS;
+  var fallback = window.IUNIGO_FINDINGS_DEFAULT;
+  FINDINGS = externo || fallback;
+
+  if(!FINDINGS){
+    document.getElementById("execStatus").textContent = "";
+    document.getElementById("execList").innerHTML =
+      '<div class="fc"><span class="fc-tag action">Atención</span><div class="fc-text">'+
+      'No se encontró contenido de descubrimientos ni en <b>'+esc(FINDINGS_FILE)+'</b> ni en el respaldo embebido del HTML.</div></div>';
+    return;
+  }
+  var meta = FINDINGS._meta;
+  var fuente = externo ? "archivo externo" : "contenido embebido en el HTML";
+  document.getElementById("execStatus").textContent =
+    (meta && meta.actualizado ? "Actualizado " + meta.actualizado : "") + " · " + fuente;
+  pintarDescubrimientos(document.getElementById("filtro").value);
+}
+
+// ---------- KPIs ----------
+function pintarKpis(k){
+  var d = D[k], j = d.jul, u = d.jun;
+  var cplJ = j.inv/j.leads, cplU = u.inv/u.leads;
+  var crJ = (j.leads/j.clics)*100, crU = (u.leads/u.clics)*100;
+  var cpcJ = j.inv/j.clics, cpcU = u.inv/u.clics;
+
+  document.getElementById("kpiCtx").textContent = d.label + " · Julio 2026 (mes cerrado)";
+  document.getElementById("tagline").innerHTML = "Mostrando <b>"+d.label+"</b> · datos exclusivos de esta selección en toda la página.";
+
+  var cards = [
+    {c:"hero", l:"Inversión", v:ars(j.inv), d:dlt(varia(j.inv,u.inv), false)},
+    {c:"lead", l:"Leads generados", v:n0(j.leads), d:dlt(varia(j.leads,u.leads), false)},
+    {c:"lead", l:"Costo por lead", v:ars(cplJ), d:dlt(varia(cplJ,cplU), true)},
+    {c:"", l:"Tasa de conversión", v:pct(crJ,2), d:dlt(varia(crJ,crU), false)},
+    {c:"", l:"Impresiones", v:n0(j.imp), d:dlt(varia(j.imp,u.imp), false)},
+    {c:"", l:"Clics", v:n0(j.clics), d:dlt(varia(j.clics,u.clics), false)},
+    {c:"", l:"Costo por clic", v:ars(cpcJ), d:dlt(varia(cpcJ,cpcU), true)}
+  ];
+  document.getElementById("kpis").innerHTML = cards.map(function(c){
+    return '<div class="kpi '+c.c+'"><div class="kpi-l">'+c.l+'</div><div class="kpi-v">'+c.v+'</div>'+c.d+'</div>';
+  }).join("");
+
+  if(k==="total"){
+    var plan = 26917567, pctPlan = (j.inv/plan*100).toFixed(1);
+    document.getElementById("kpiNote").innerHTML = "Ejecución sobre el plan de julio: <b>"+pctPlan.replace(".",",")+"%</b> ("+ars(j.inv)+" de "+ars(plan)+" planificados).";
+  } else if(k==="bing"){
+    document.getElementById("kpiNote").innerHTML = "Inversión con el 21% de IVA ya incluido, sobre el gasto en dólares convertido a $1.550.";
+  } else {
+    document.getElementById("kpiNote").textContent = "El costo por lead y la tasa de conversión se calculan sobre la acción de lead marcada para esta cuenta.";
+  }
+}
+
+// ---------- RANKING DE CAMPAÑAS ----------
+function pintarCampanas(k){
+  var rows = CAMP.filter(function(c){ return (k==="total" || c.p===k) && c.lj !== null; });
+  rows.sort(function(a,b){ return b.lj - a.lj; });
+  rows = rows.slice(0, 8);
+  document.getElementById("campCtx").textContent = k==="total" ? "Ordenado por leads de julio · todas las plataformas" : "Ordenado por leads de julio · exclusivo de " + D[k].label;
+  document.getElementById("tbCamp").innerHTML = rows.map(function(c, i){
+    var cj = c.ij/c.lj;
+    var cu = (c.lu && c.lu>0) ? c.iu/c.lu : null;
+    var nota = c.nota ? ' <span class="tag">'+c.nota+'</span>' : "";
+    return "<tr>"+
+      "<td class=\"rk\">"+String(i+1).padStart(2,"0")+"</td>"+
+      "<td>"+c.n+nota+"</td>"+
+      "<td>"+n0(c.lj)+"</td>"+
+      "<td>"+ars(cj)+"</td>"+
+      "<td>"+cell(varia(cj,cu),"bajo")+"</td>"+
+    "</tr>";
+  }).join("");
+}
+
+function thumbIcon(tipo){ return tipo==="video" ? "\u25B6" : "\uD83D\uDDBC"; }
+function thumbHtml(r){
+  var url = META_IMG[r.n];
+  if(url){
+    return "<div class=\"thumb\">"+
+      "<img src=\""+url+"\" alt=\"Creativo "+esc(r.n)+"\" loading=\"lazy\" onerror=\"this.style.display='none';this.nextElementSibling.style.display='flex';\">"+
+      "<span class=\"fallback\">"+thumbIcon(r.tipo)+"</span>"+
+    "</div>";
+  }
+  return "<div class=\"thumb\">"+thumbIcon(r.tipo)+"</div>";
+}
+function creativeRows(arr){
+  return arr.slice().sort(function(a,b){ return b.leads-a.leads; }).slice(0,5).map(function(r, i){
+    var cpl = r.leads>0 ? ars(r.inv/r.leads) : '<span class="nil">sin leads</span>';
+    var tagCls = r.estado==="activo" ? "tag active" : "tag paused";
+    var tagTxt = r.estado==="activo" ? "Activo" : "Pausado";
+    return "<tr><td class=\"rk\">"+String(i+1).padStart(2,"0")+"</td>"+
+      "<td><div class=\"creative-name\">"+thumbHtml(r)+
+      "<div class=\"cn-txt\"><span style=\"color:var(--ink);font-weight:600;font-size:13px\">"+esc(r.n)+"</span>"+
+      "<span>"+(r.tipo==="video"?"Video":"Banner")+"</span></div></div></td>"+
+      "<td style=\"text-align:left\"><span class=\""+tagCls+"\">"+tagTxt+"</span></td>"+
+      "<td>"+ars(r.inv)+"</td><td>"+n0(r.leads)+"</td><td>"+cpl+"</td></tr>";
+  }).join("");
+}
+
+function pintarTablasFijas(){
+  document.getElementById("tbEdad").innerHTML = EDAD.map(function(r){
+    var ca = r.la>0 ? ars(r.ia/r.la) : '<span class="nil">sin leads</span>';
+    var cr = r.lr>0 ? ars(r.ir/r.lr) : '<span class="nil">sin leads</span>';
+    return "<tr><td>"+r.e+"</td><td>"+ars(r.ia)+"</td><td>"+n0(r.la)+"</td><td>"+ca+
+           "</td><td>"+ars(r.ir)+"</td><td>"+n0(r.lr)+"</td><td>"+cr+"</td></tr>";
+  }).join("");
+
+  function termRows(arr){
+    return arr.map(function(t){
+      var l = new Intl.NumberFormat("es-AR",{maximumFractionDigits:1}).format(t.l);
+      return "<tr><td>"+t.t+"</td><td>"+ars(t.i)+"</td><td>"+l+"</td><td>"+
+             (t.c?ars(t.c):'<span class="nil">sin leads</span>')+"</td></tr>";
+    }).join("");
+  }
+  document.getElementById("tbTermOk").innerHTML = termRows(TERM_OK);
+  document.getElementById("tbTermMal").innerHTML = termRows(TERM_MAL);
+
+  document.getElementById("tbDisp").innerHTML = DISP.map(function(r){
+    return "<tr><td>"+r.d+"</td><td>"+ars(r.i)+"</td><td>"+n0(r.l)+"</td><td>"+ars(r.c)+
+           "</td><td>"+pct(r.crj,2)+"</td><td>"+pct(r.cru,2)+"</td></tr>";
+  }).join("");
+
+  document.getElementById("tbMetaAdq").innerHTML = creativeRows(META_ADQ);
+  document.getElementById("tbMetaRmk").innerHTML = creativeRows(META_RMK);
+}
+
+// ---------- CHARTS ----------
+// Blindado: si Chart.js no cargó (CDN caído, bloqueado, sin red), el resto del reporte
+// (descubrimientos, KPIs, funnel, ranking) debe seguir funcionando igual.
+try {
+if (typeof Chart === "undefined") throw new Error("Chart.js no disponible");
+
+Chart.defaults.font.family = "Montserrat, sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.color = INK;
+
+var claves = ["google","meta","bing","tiktok"];
+var etiquetas = claves.map(function(k){ return D[k].label; });
+
+new Chart(document.getElementById("chPlat"), {
+  data:{
+    labels: etiquetas,
+    datasets:[
+      {type:"bar", label:"Inversión junio", data:claves.map(function(k){return D[k].jun.inv;}), backgroundColor:G2, yAxisID:"y", borderRadius:0},
+      {type:"bar", label:"Inversión julio", data:claves.map(function(k){return D[k].jul.inv;}), backgroundColor:RED, yAxisID:"y", borderRadius:0},
+      {type:"line", label:"Leads julio", data:claves.map(function(k){return D[k].jul.leads;}), borderColor:INK, backgroundColor:INK, yAxisID:"y1", tension:.3, pointRadius:4, borderWidth:2}
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:"index",intersect:false},
+    plugins:{
+      legend:{position:"bottom", labels:{boxWidth:10, boxHeight:10, padding:14}},
+      tooltip:{callbacks:{label:function(c){
+        return c.dataset.label+": "+(c.datasetIndex===2 ? n0(c.parsed.y)+" leads" : ars(c.parsed.y));
+      }}}
+    },
+    scales:{
+      y:{position:"left", grid:{color:"#F0F0F0"}, ticks:{callback:function(v){return "$"+(v/1000000)+"M";}}},
+      y1:{position:"right", grid:{drawOnChartArea:false}, ticks:{callback:function(v){return n0(v);}}},
+      x:{grid:{display:false}}
+    }
+  }
+});
+
+new Chart(document.getElementById("chCpl"), {
+  type:"bar",
+  data:{
+    labels: etiquetas,
+    datasets:[
+      {label:"Junio", data:claves.map(function(k){return D[k].jun.inv/D[k].jun.leads;}), backgroundColor:G2, borderRadius:0},
+      {label:"Julio", data:claves.map(function(k){return D[k].jul.inv/D[k].jul.leads;}), backgroundColor:RED, borderRadius:0}
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false, indexAxis:"y",
+    plugins:{
+      legend:{position:"bottom", labels:{boxWidth:10, boxHeight:10, padding:14}},
+      tooltip:{callbacks:{label:function(c){ return c.dataset.label+": "+ars(c.parsed.x); }}}
+    },
+    scales:{
+      x:{grid:{color:"#F0F0F0"}, ticks:{callback:function(v){return "$"+n0(v/1000)+"k";}}},
+      y:{grid:{display:false}}
+    }
+  }
+});
+
+new Chart(document.getElementById("chMix"), {
+  type:"doughnut",
+  data:{
+    labels: etiquetas,
+    datasets:[
+      {label:"Inversión", data:claves.map(function(k){return D[k].jul.inv;}), backgroundColor:[RED,INK,"#9E9E9E",G2], borderColor:"#FFFFFF", borderWidth:2}
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false, cutout:"55%",
+    plugins:{
+      legend:{position:"bottom", labels:{boxWidth:10, boxHeight:10, padding:14}},
+      tooltip:{callbacks:{label:function(c){
+        var tot = c.dataset.data.reduce(function(a,b){return a+b;},0);
+        var p = new Intl.NumberFormat("es-AR",{maximumFractionDigits:1}).format(c.parsed/tot*100);
+        return c.label+": "+ars(c.parsed)+" ("+p+"%)";
+      }}}
+    }
+  }
+});
+
+} catch(chartErr) {
+  ["chPlat","chCpl","chMix"].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el && el.parentElement) el.parentElement.innerHTML = '<p class="note">No se pudo cargar el gráfico (Chart.js no disponible). El resto del reporte funciona con normalidad.</p>';
+  });
+}
+
+var claves = ["google","meta","bing","tiktok"];
+document.getElementById("leadsMixNote").innerHTML =
+  "Distribución de leads del mes: " + claves.map(function(k){ return D[k].label.replace(" (con IVA)","") + " " + pct(D[k].share,1); }).join(" · ") + ".";
+
+// ---------- FUNNEL DE CONVERSIÓN ----------
+function pintarFunnel(k){
+  var j = D[k].jul;
+  var max = j.imp || 1;
+  var wImp = 100;
+  var wClic = Math.max((j.clics/max)*100, j.clics>0?0.6:0);
+  var wLead = Math.max((j.leads/max)*100, j.leads>0?0.6:0);
+
+  document.getElementById("fImp").textContent = n0(j.imp);
+  document.getElementById("fClic").textContent = n0(j.clics);
+  document.getElementById("fLead").textContent = n0(j.leads);
+
+  requestAnimationFrame(function(){
+    document.getElementById("fBarImp").style.width = wImp+"%";
+    document.getElementById("fBarClic").style.width = wClic+"%";
+    document.getElementById("fBarLead").style.width = wLead+"%";
+  });
+
+  var ctr = j.imp ? (j.clics/j.imp)*100 : 0;
+  var cvr = j.clics ? (j.leads/j.clics)*100 : 0;
+  document.getElementById("fRateClic").innerHTML = "Tasa de paso desde impresiones: <b>"+pct(ctr,2)+"</b> (CTR)";
+  document.getElementById("fRateLead").innerHTML = "Tasa de paso desde clics: <b>"+pct(cvr,2)+"</b> (tasa de conversión) · costo por lead <b>"+ars(j.inv/(j.leads||1))+"</b>";
+  document.getElementById("tEmbudo").textContent = D[k].label + " · impresiones → clics → conversiones";
+}
+
+// ---------- VISIBILIDAD ESTRICTA POR PLATAFORMA ----------
+function mostrar(id, visible){ document.getElementById(id).style.display = visible ? "" : "none"; }
+
+function aplicarVisibilidad(k){
+  mostrar("secCompare", k==="total");
+  mostrar("secMetaCreatives", k==="meta");
+  mostrar("secMetaAudience", k==="meta");
+  mostrar("secGoogleSearch", k==="google");
+  mostrar("secGoogleDevice", k==="google");
+}
+
+function aplicar(k){
+  pintarDescubrimientos(k);
+  pintarKpis(k);
+  pintarCampanas(k);
+  pintarFunnel(k);
+  aplicarVisibilidad(k);
+}
+
+document.getElementById("filtro").addEventListener("change", function(e){ aplicar(e.target.value); });
+pintarTablasFijas();
+pintarInvShift();
+cargarFindings();
+aplicar("total");
+})();
+</script>
+</body>
+</html>
