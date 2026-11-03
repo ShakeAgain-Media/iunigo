@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iúnigo - Reporte de performance - Octubre 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--red:#9A0000;--red-hot:#ED1B24;--ink:#141414;--body:#3A3A3A;--g1:#9E9E9E;--g2:#CCCCCC;--g3:#E6E6E6;
+      --paper:#FFFFFF;--shell:#F4F4F4;--up:#1B7A3D;--dn:#9A0000;}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:"Montserrat",system-ui,sans-serif;background:var(--shell);color:var(--ink);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px 72px}
+.top{background:var(--ink);color:#fff;padding:26px 0 0}
+.top .wrap{padding-bottom:0}
+.top-row{display:flex;align-items:flex-start;justify-content:space-between;gap:28px;flex-wrap:wrap}
+.wordmark{font-size:15px;font-weight:800;letter-spacing:.14em;color:#fff}
+.top-meta{text-align:right;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--g1);line-height:1.9}
+.top-meta b{color:#fff;font-weight:600}
+.headline{margin-top:30px;padding-bottom:26px}
+.eyebrow{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--red-hot);font-weight:700}
+.headline h1{font-size:clamp(26px,4.2vw,42px);font-weight:800;letter-spacing:-.025em;line-height:1.06;margin-top:12px;color:#fff}
+.headline h1 em{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-weight:700;color:var(--g2)}
+.headline p{margin-top:12px;color:var(--g1);max-width:64ch;font-size:14px;line-height:1.6}
+.headline p b{color:#fff;font-weight:600}
+.control{background:#1E1E1E;border-top:1px solid #2C2C2C;padding:16px 0;position:sticky;top:0;z-index:40}
+.control .wrap{padding-bottom:0;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.control label{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--g1);font-weight:600}
+select{font-family:inherit;font-size:15px;font-weight:700;color:#fff;background:var(--ink);border:1px solid #3A3A3A;border-radius:2px;
+ padding:11px 40px 11px 15px;min-width:290px;cursor:pointer;appearance:none;
+ background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'><path d='M1 1l4.5 4.5L10 1' stroke='%23ED1B24' stroke-width='1.6' fill='none' stroke-linecap='square'/></svg>");
+ background-repeat:no-repeat;background-position:right 15px center}
+select:focus-visible{outline:2px solid var(--red-hot);outline-offset:2px}
+.tagline{font-size:11px;color:var(--g1);letter-spacing:.06em}
+.tagline b{color:#fff;font-weight:600}
+
+/* ---- Descubrimientos y próximos pasos ---- */
+.exec{margin-top:26px}
+.exec-head{display:flex;align-items:baseline;gap:10px;margin-bottom:4px;flex-wrap:wrap}
+.exec-head h3{font-size:12px;letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--ink)}
+.exec-sub{font-size:12px;color:var(--body);margin-bottom:18px}
+#execStatus{font-size:12px;color:var(--g1)}
+
+.inv-shift{background:var(--paper);border:1px solid var(--g3);border-left:3px solid var(--red);padding:18px 20px;margin-bottom:16px;display:none}
+.inv-shift-title{font-size:10px;letter-spacing:.18em;text-transform:uppercase;font-weight:800;color:var(--red);margin-bottom:14px}
+.ishift-row{margin-bottom:13px}.ishift-row:last-child{margin-bottom:0}
+.ishift-label{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;font-weight:700;margin-bottom:6px}
+.ishift-legend{font-size:10px;font-weight:600;color:var(--g1);letter-spacing:.04em}
+.ishift-bars{display:flex;flex-direction:column;gap:3px}
+.ishift-bar-track{height:7px;background:var(--g3);overflow:hidden}
+.ishift-bar{height:100%}
+
+.find{display:grid;gap:14px}
+.fc{background:var(--paper);border:1px solid var(--g3);padding:18px 22px}
+.fc.featured{border:2px solid var(--red);padding:22px 24px}
+.fc-badge{display:inline-block;background:var(--red);color:#fff;font-size:9px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;padding:4px 9px;border-radius:2px;margin-bottom:11px}
+.fc-stat{font-size:19px;font-weight:800;letter-spacing:-.02em;color:var(--red);line-height:1.25;margin-bottom:14px}
+.fc-row{margin-bottom:12px}.fc-row:last-child{margin-bottom:0}
+.fc-tag{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:800;color:var(--g1);margin-bottom:5px;display:block}
+.fc-tag.action{color:var(--red)}
+.fc-text{font-size:13.5px;line-height:1.62;color:var(--body)}
+.fc-action{font-size:13.5px;line-height:1.55;font-weight:700;color:var(--ink);padding:11px 14px;background:#FBF3F3;border-left:2px solid var(--red)}
+
+.alert{margin-top:16px;background:var(--paper);border-left:3px solid var(--g2);padding:14px 20px;display:flex;gap:14px;align-items:flex-start}
+.alert-k{font-size:10px;letter-spacing:.22em;text-transform:uppercase;font-weight:700;color:var(--g1);white-space:nowrap;padding-top:2px}
+.alert-t{font-size:12.5px;color:var(--body);line-height:1.55}
+.alert-t b{font-weight:700;color:var(--ink)}
+.sec{margin-top:44px}
+.sec-head{display:flex;align-items:baseline;gap:14px;padding-bottom:14px;border-bottom:2px solid var(--ink);margin-bottom:22px;flex-wrap:wrap}
+.sec-head h2{font-size:14px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.sec-head span{font-size:12px;color:var(--g1);margin-left:auto;letter-spacing:.04em}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:1px;background:var(--g3);border:1px solid var(--g3)}
+.kpi{background:var(--paper);padding:20px}
+.kpi-l{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--g1);font-weight:600}
+.kpi-v{font-size:clamp(23px,2.4vw,30px);font-weight:800;letter-spacing:-.03em;margin-top:9px;line-height:1;font-variant-numeric:tabular-nums}
+.kpi-d{font-size:11px;margin-top:8px;font-weight:700;letter-spacing:.04em}
+.kpi-d small{font-weight:500;color:var(--g1)}
+.up{color:var(--up)}.dn{color:var(--dn)}.flat{color:var(--g1)}
+.kpi.hero{background:var(--ink)}.kpi.hero .kpi-l,.kpi.hero .kpi-d small{color:var(--g1)}.kpi.hero .kpi-v{color:#fff}
+.kpi.lead .kpi-v{color:var(--red)}
+.panel{background:var(--paper);border:1px solid var(--g3)}
+.panel-pad{padding:22px 24px}
+.tbl-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--g1);font-weight:700;text-align:right;
+   padding:13px 12px;border-bottom:1px solid var(--g3);white-space:nowrap;background:var(--paper)}
+th:first-child{text-align:left}
+td{padding:12px;border-bottom:1px solid #F2F2F2;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td:first-child{text-align:left;font-weight:600;white-space:normal;min-width:170px}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#FAFAFA}
+.nil{color:var(--g2)}
+.up-txt{color:var(--up);font-weight:700}.dn-txt{color:var(--dn);font-weight:700}.flat-txt{color:var(--g1);font-weight:700}
+.tag{display:inline-block;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:3px 8px;border:1px solid var(--g2);color:var(--g1);border-radius:2px;margin-left:6px}
+.tag.paused{border-color:var(--g1);color:var(--g1);background:#F2F2F2}
+.tag.active{border-color:var(--up);color:var(--up);background:#EAF4EE}
+.rk{color:var(--g2);font-weight:800;font-size:11px;width:24px;text-align:right;padding-right:0}
+.cifra{font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.destaque{font-family:Georgia,"Times New Roman",serif;font-weight:700;font-style:italic}
+.chartbox{position:relative;height:290px}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:900px){.duo{grid-template-columns:1fr}}
+.note{font-size:11.5px;color:var(--g1);margin-top:11px;line-height:1.6}
+.compare{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid var(--g3)}
+.compare .side p:first-child{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--g1);font-weight:600;margin-bottom:6px}
+.compare .side .v{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1}
+.compare .side small{display:block;font-size:11px;color:var(--g1);margin-top:5px}
+.funnel{padding:6px 2px 2px}
+.fstep{margin-bottom:24px}.fstep:last-child{margin-bottom:0}
+.fmeta{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:9px;flex-wrap:wrap}
+.fname{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--g1)}
+.fnum{font-size:clamp(19px,2vw,24px);font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.fbar-track{height:13px;background:var(--g3);overflow:hidden}
+.fbar{height:100%;width:0;transition:width .7s cubic-bezier(.4,0,.2,1)}
+.fbar.f1{background:var(--g1)}
+.fbar.f2{background:var(--ink)}
+.fbar.f3{background:var(--red)}
+.frate{font-size:11.5px;color:var(--g1);margin-top:8px}
+.frate b{color:var(--ink);font-weight:700}
+.thumb{width:44px;height:44px;background:var(--g3);border-radius:2px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;overflow:hidden;position:relative}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb .fallback{display:none;align-items:center;justify-content:center;width:100%;height:100%}
+.creative-name{display:flex;align-items:center;gap:10px}
+.creative-name .cn-txt{display:flex;flex-direction:column;gap:2px}
+.creative-name .cn-txt span{font-size:10.5px;color:var(--g1);font-weight:500}
+.foot{margin-top:56px;padding-top:22px;border-top:1px solid var(--g2);display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-size:11px;color:var(--g1)}
+.foot b{color:var(--ink);font-weight:700}
+@media(max-width:640px){.top-meta{text-align:left}select{min-width:100%}.kpi{padding:16px}th,td{padding:10px 9px}.chartbox{height:250px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+@media print{body{background:#fff}.control{position:static}.sec{break-inside:avoid}}
+
+.steps{margin-top:18px;padding:22px 24px;background:var(--paper);border:1px solid var(--g3);border-top:3px solid var(--ink)}
+.steps-k{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--ink);margin-bottom:8px}
+.step{display:flex;gap:14px;align-items:baseline;padding:11px 0;border-top:1px solid var(--g3);font-size:13.5px;line-height:1.5;color:var(--body)}
+.step:first-of-type{border-top:0}
+.step-n{flex:0 0 22px;font-weight:800;color:var(--red)}
+.step-a{flex:0 0 92px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--ink)}
+.step-t{flex:1;color:var(--ink)}
+@media(max-width:640px){.step{flex-wrap:wrap}.step-a{flex:1 1 calc(100% - 40px)}.step-t{flex:1 1 100%}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="top-row">
+    <div class="wordmark">SHAKEAGAIN</div>
+    <div class="top-meta">Reporte mensual de medios<br><b id="periodTopMeta">Octubre 2026 (mes cerrado)</b></div>
+  </div>
+  <div class="headline">
+    <div class="eyebrow">iúnigo · Cuenta de medios</div>
+    <h1>Performance <em id="periodH1">· octubre 2026</em></h1>
+    <p>Mes cerrado, <span id="periodIntro">del 1 al 31 de octubre, comparado contra septiembre 2026</span>. Google Ads, Meta Ads, Microsoft Ads y TikTok Ads. <b>Fuente única: métricas de plataforma vía Master Metrics.</b></p>
+  </div>
+</div></header>
+
+<div class="control"><div class="wrap">
+  <label for="filtro">Ver resultados de</label>
+  <select id="filtro" aria-label="Filtrar por plataforma">
+    <option value="total">Todas las plataformas (consolidado)</option>
+    <option value="google">Google Ads</option>
+    <option value="meta">Meta Ads</option>
+    <option value="bing">Microsoft Ads</option>
+    <option value="tiktok">TikTok Ads</option>
+  </select>
+  <div class="tagline" id="tagline">Los indicadores, los gráficos, las tablas y los descubrimientos se actualizan con la selección.</div>
+</div></div>
+
+<main class="wrap">
+
+  <!-- ============ DESCUBRIMIENTOS + PRÓXIMOS PASOS (contenido vía .js externo) ============ -->
+  <section class="exec">
+    <div class="exec-head"><h3 id="execTitle">Descubrimientos y próximos pasos</h3><span id="execStatus"></span></div>
+    <p class="exec-sub">Qué detectamos en los datos del mes, por qué importa y qué proponemos hacer con eso.</p>
+
+    <div class="find" id="execList"></div>
+    <div id="execSteps"></div>
+
+    <div class="inv-shift" id="invShift" style="margin-top:22px;margin-bottom:0">
+      <p class="inv-shift-title" id="invShiftTitle">Distribución de inversión · octubre real → noviembre (plan)</p>
+      <div id="invShiftRows"></div>
+      <p class="note">Barra gris: participación real de cada plataforma en la inversión de octubre (Master Metrics). Barra roja: participación prevista en el media plan de noviembre, sin la línea de prueba en ChatGPT. Los valores de Microsoft incluyen el IVA, tanto en octubre real como en el plan.</p>
+    </div>
+
+
+  </section>
+
+  <div class="alert">
+    <div class="alert-k">Cómo se mide</div>
+    <div class="alert-t" id="alertTxt"></div>
+  </div>
+
+  <!-- ============ ACCIONES DEL MES (solo consolidado) ============ -->
+  <section class="sec" id="secAccion">
+    <div class="sec-head"><h2>Qué hicimos en octubre</h2><span>Octubre 2026</span></div>
+    <div class="panel tbl-scroll">
+      <table>
+        <thead><tr><th style="text-align:left">Fecha</th><th style="text-align:left">Plataforma</th><th style="text-align:left">Acción</th></tr></thead>
+        <tbody>
+          <tr><td style="text-align:left;white-space:nowrap;vertical-align:top">Octubre</td><td style="text-align:left;vertical-align:top">Google</td><td style="text-align:left;white-space:normal;line-height:1.55">Se desdobló la campaña única de Demand Gen en dos: awareness, con presupuesto mínimo aislado, y remarketing para visitantes del sitio que no se convirtieron en leads. Esta última convirtió 19 veces.</td></tr>
+          <tr><td style="text-align:left;white-space:nowrap;vertical-align:top">Mediados de octubre</td><td style="text-align:left;vertical-align:top">Meta</td><td style="text-align:left;white-space:normal;line-height:1.55">Se excluyeron Audience Network y aplicaciones para depurar las ubicaciones.</td></tr>
+          <tr><td style="text-align:left;white-space:nowrap;vertical-align:top">19/10</td><td style="text-align:left;vertical-align:top">Meta</td><td style="text-align:left;white-space:normal;line-height:1.55">Se quitaron las UTMs estándar y se dejaron solo las de Salesforce.</td></tr>
+          <tr><td style="text-align:left;white-space:nowrap;vertical-align:top">19/10</td><td style="text-align:left;vertical-align:top">TikTok</td><td style="text-align:left;white-space:normal;line-height:1.55">Anuncios nuevos en reemplazo de los de awareness y adquisición.</td></tr>
+          <tr><td style="text-align:left;white-space:nowrap;vertical-align:top">20/10</td><td style="text-align:left;vertical-align:top">Google</td><td style="text-align:left;white-space:normal;line-height:1.55">Se quitó la conversión «Cotización finalizada» y quedó como principal el envío de formulario con conversiones mejoradas.</td></tr>
+          <tr><td style="text-align:left;white-space:nowrap;vertical-align:top">20/10</td><td style="text-align:left;vertical-align:top">Google</td><td style="text-align:left;white-space:normal;line-height:1.55">Se reemplazó la URL de destino de la conversión «Compra finalizada» por la página pago-finalizado/exito de iúnigo, un pendiente de medición.</td></tr>
+          <tr><td style="text-align:left;white-space:nowrap;vertical-align:top">Octubre</td><td style="text-align:left;vertical-align:top">Todas</td><td style="text-align:left;white-space:normal;line-height:1.55">Rastreo de acciones y auditoría de UTMs de todas las plataformas; el listado se compartió con Meli para determinar de dónde salen las conversiones con fuente «iúnigo» e «IUNIGO» en Salesforce.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel panel-pad" style="margin-top:18px">
+      <p class="kpi-l" style="margin-bottom:10px">De cara a noviembre</p>
+      <p style="font-size:13.5px;line-height:1.65;color:var(--body);max-width:82ch">
+        El media plan prevé <b>$26,5 millones</b>, <b>3.251 leads</b> y un costo por lead objetivo de <b>$8.647</b>; octubre cerró en $8.096. Incluye mantener la campaña de remarketing de Demand Gen y suma la propuesta de <b>testear anuncios en ChatGPT</b>, cuya aprobación queda del lado de iúnigo. La línea de prueba ($1.612.000) figura fuera del total de $26,5 millones en la planilla, por lo que falta definir si se financia reasignando de otros canales o con presupuesto adicional. A fines de noviembre está previsto el cambio de materiales.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ KPIs ============ -->
+  <section class="sec">
+    <div class="sec-head"><h2>Indicadores del mes</h2><span id="kpiCtx">Todas las plataformas</span></div>
+    <div class="kpis" id="kpis"></div>
+    <p class="note" id="kpiNote"></p>
+  </section>
+
+  <!-- ============ GRÁFICOS COMPARATIVOS (solo consolidado) ============ -->
+  <section class="sec" id="secCompare">
+    <div class="sec-head"><h2>Comparación entre plataformas</h2><span id="periodCompareHead">Octubre vs. septiembre 2026</span></div>
+    <div class="duo">
+      <div class="panel panel-pad">
+        <p class="kpi-l" style="margin-bottom:4px">Comparación mensual</p>
+        <p style="font-size:13.5px;font-weight:600;margin-bottom:14px">Inversión y leads por plataforma</p>
+        <div class="chartbox"><canvas id="chPlat"></canvas></div>
+      </div>
+      <div class="panel panel-pad">
+        <p class="kpi-l" style="margin-bottom:4px">Comparación mensual</p>
+        <p style="font-size:13.5px;font-weight:600;margin-bottom:14px">Costo por lead por plataforma</p>
+        <div class="chartbox"><canvas id="chCpl"></canvas></div>
+      </div>
+    </div>
+    <div class="panel panel-pad" style="margin-top:22px">
+      <p class="kpi-l" style="margin-bottom:4px" id="periodMixLabel">Octubre 2026</p>
+      <p style="font-size:13.5px;font-weight:600;margin-bottom:14px">Dónde se invirtió</p>
+      <div class="chartbox"><canvas id="chMix"></canvas></div>
+      <p class="note" id="leadsMixNote"></p>
+    </div>
+  </section>
+
+  <!-- ============ FUNNEL DE CONVERSIÓN (siempre, por plataforma) ============ -->
+  <section class="sec">
+    <div class="sec-head"><h2>Funnel de conversión</h2><span id="tEmbudo">Impresiones → clics → conversiones</span></div>
+    <div class="panel panel-pad">
+      <div class="funnel" id="funnel">
+        <div class="fstep">
+          <div class="fmeta"><div class="fname">Impresiones</div><div class="fnum" id="fImp">—</div></div>
+          <div class="fbar-track"><div class="fbar f1" id="fBarImp"></div></div>
+        </div>
+        <div class="fstep">
+          <div class="fmeta"><div class="fname">Clics</div><div class="fnum" id="fClic">—</div></div>
+          <div class="fbar-track"><div class="fbar f2" id="fBarClic"></div></div>
+          <div class="frate" id="fRateClic"></div>
+        </div>
+        <div class="fstep">
+          <div class="fmeta"><div class="fname">Conversiones (leads)</div><div class="fnum" id="fLead">—</div></div>
+          <div class="fbar-track"><div class="fbar f3" id="fBarLead"></div></div>
+          <div class="frate" id="fRateLead"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DEL LEAD A LA PÓLIZA (datos CRM del cliente) ============ -->
+  <section class="sec" id="secCierres">
+    <div class="sec-head"><h2>Del lead a la póliza cerrada</h2><span id="periodCierres">Datos de CRM de iúnigo · octubre 2026</span></div>
+
+    <div class="kpis" style="margin-bottom:22px">
+      <div class="kpi hero">
+        <div class="kpi-l">Pólizas cerradas (medios pagos)</div>
+        <div class="kpi-v">63</div>
+        <div class="kpi-d dn">▼ 17,1% <small>vs septiembre</small></div>
+      </div>
+      <div class="kpi lead">
+        <div class="kpi-l">Costo por póliza cerrada</div>
+        <div class="kpi-v">$398.001</div>
+        <div class="kpi-d dn">▲ 14,0% <small>vs septiembre</small></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-l">Tasa de cierre (medios pagos)</div>
+        <div class="kpi-v">2,25%</div>
+        <div class="kpi-d dn">▼ 0,46 pp <small>vs septiembre</small></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-l">Leads en CRM (medios pagos)</div>
+        <div class="kpi-v">2.801</div>
+        <div class="kpi-d flat">= 0,3% <small>vs septiembre</small></div>
+      </div>
+    </div>
+
+    <div class="panel tbl-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Origen</th><th>Conv. plataforma</th><th>Leads CRM</th><th>Brecha</th>
+            <th>Cierres sep.</th><th>Cierres oct.</th><th>Tasa cierre oct.</th><th>Costo x póliza oct.</th>
+          </tr>
+        </thead>
+        <tbody id="tbCierres"></tbody>
+      </table>
+    </div>
+    <p class="note">La <b>brecha</b> compara las conversiones que reporta cada plataforma contra los leads que efectivamente ingresaron al CRM. Google mantiene la medición más limpia (-0,7%); Meta sigue alta (-30,7%); TikTok no registró ningún lead en el CRM. La tasa de cierre se calcula sobre los leads del CRM; calculada sobre las conversiones de plataforma, la de Meta es de 0,84%. Los costos por póliza de Microsoft incluyen el IVA. Para octubre no recibimos el detalle de «Directo / sin campaña asignada», ni el de canal de emisión y producto, por lo que esas vistas se retoman cuando estén disponibles. Los datos de Microsoft en CRM (152 leads y 5 cierres) coinciden exactamente con los de septiembre: conviene validarlos con iúnigo.</p>
+
+    <div class="panel panel-pad" style="margin-top:22px">
+      <p class="kpi-l" style="margin-bottom:10px">Evolución del costo por póliza cerrada</p>
+      <div id="serieCosto"></div>
+      <p class="note" style="margin-top:14px">Tras tres meses de baja, octubre sube <b>14,0%</b> contra septiembre pero queda 22,5% por debajo de julio. El costo por lead de los medios mejoró (-2,9%); el movimiento viene de 13 pólizas menos con leads estables, concentradas en Google.</p>
+    </div>
+  </section>
+
+  <!-- ============ RANKING DE CAMPAÑAS ============ -->
+  <section class="sec">
+    <div class="sec-head"><h2>Ranking de campañas</h2><span id="campCtx">Ordenado por leads del mes</span></div>
+    <div class="panel tbl-scroll">
+      <table>
+        <thead>
+          <tr><th></th><th>Campaña</th><th>Leads</th><th id="thCpl">CPL oct.</th><th>Var. CPL</th></tr>
+        </thead>
+        <tbody id="tbCamp"></tbody>
+      </table>
+    </div>
+    <p class="note">Las campañas de alcance en video y de tráfico (Meta, TikTok) trabajan sobre notoriedad, no tienen objetivo de lead y no entran en este ranking.</p>
+  </section>
+
+  <!-- ============ CREATIVOS META (solo Meta) ============ -->
+  <section class="sec" id="secMetaCreatives">
+    <div class="sec-head"><h2>Creativos en Meta</h2><span id="periodMetaCreatives">Rendimiento por pieza · octubre 2026</span></div>
+    <p style="font-size:13px;color:var(--body);margin-bottom:18px;max-width:78ch">Octubre sumó contenido más genérico a las piezas Always-On, tras cerrar la acción de cumpleaños. La estática 1 de septiembre siguió concentrando la captación, mientras las piezas nuevas entraron con presupuesto de prueba. En remarketing, las piezas de octubre reemplazaron a los reels de septiembre.</p>
+    <div class="duo">
+      <div class="panel panel-pad">
+        <p class="kpi-l" style="margin-bottom:14px">Captación de nuevos usuarios · octubre</p>
+        <div class="compare">
+          <div class="side"><p>Estática 1 <span class="tag active">Líder</span></p><p class="v" style="color:var(--red)">$4.343</p><small>508 leads · $2.206.204 invertidos</small></div>
+          <div class="side" style="text-align:right"><p>Piezas nuevas de octubre</p><p class="v">$6.538</p><small>15 leads · $98.070 invertidos</small></div>
+        </div>
+        <p style="font-size:13px;line-height:1.6;color:var(--body)">La estática 1 concentra el 97% de los leads de captación y bajó su costo por lead de $4.765 a $4.343. La mejor de las nuevas, Video Nuevos Leads, cerró 10 leads a $4.769: con tan poco presupuesto, la muestra todavía es corta.</p>
+      </div>
+      <div class="panel panel-pad">
+        <p class="kpi-l" style="margin-bottom:14px">Remarketing · octubre</p>
+        <div class="compare">
+          <div class="side"><p>Video RMK <span class="tag active">Líder</span></p><p class="v" style="color:var(--red)">$7.635</p><small>71 leads · $542.064 invertidos</small></div>
+          <div class="side" style="text-align:right"><p>Reels de septiembre</p><p class="v">$7.167</p><small>22 leads · $157.679 invertidos</small></div>
+        </div>
+        <p style="font-size:13px;line-height:1.6;color:var(--body)">Las piezas de octubre concentran el 89% del gasto de remarketing. La línea cerró a $7.763 por lead (+9,3%) y 189 leads (-20): el recambio todavía no mejora el resultado de la línea.</p>
+      </div>
+    </div>
+
+    <p class="kpi-l" style="margin:28px 0 12px">Top 5 creativos · captación</p>
+    <div class="panel tbl-scroll">
+      <table>
+        <thead><tr><th></th><th>Creativo</th><th>Estado</th><th>Inversión</th><th>Leads</th><th>CPL</th></tr></thead>
+        <tbody id="tbMetaAdq"></tbody>
+      </table>
+    </div>
+
+    <p class="kpi-l" style="margin:22px 0 12px">Top 5 creativos · remarketing</p>
+    <div class="panel tbl-scroll">
+      <table>
+        <thead><tr><th></th><th>Creativo</th><th>Estado</th><th>Inversión</th><th>Leads</th><th>CPL</th></tr></thead>
+        <tbody id="tbMetaRmk"></tbody>
+      </table>
+    </div>
+
+    <p class="kpi-l" style="margin:22px 0 12px">Piezas de alcance y tráfico</p>
+    <div class="panel tbl-scroll">
+      <table>
+        <thead><tr><th></th><th>Creativo</th><th>Objetivo</th><th>Inversión</th><th>Impresiones</th><th>Clics</th></tr></thead>
+        <tbody id="tbMetaCumple"></tbody>
+      </table>
+    </div>
+    <p class="note">Estas piezas trabajan sobre notoriedad y tráfico: no tienen objetivo de lead y por eso no se las evalúa por costo por lead. Las miniaturas son imágenes con enlace temporal del CDN de Meta: las piezas nuevas de octubre se muestran con el ícono de formato, y si alguna miniatura no carga, el recuadro usa el mismo ícono como respaldo.</p>
+  </section>
+
+  <!-- ============ AUDIENCIAS META (solo Meta) ============ -->
+  <section class="sec" id="secMetaAudience">
+    <div class="sec-head"><h2>Quién convierte mejor en Meta</h2><span id="periodMetaAudience">Costo por lead por franja etaria · octubre 2026</span></div>
+    <div class="panel tbl-scroll">
+      <table>
+        <thead>
+          <tr><th>Franja etaria</th><th>Inv. captación</th><th>Leads</th><th>CPL captación</th><th>CPL captación sep.</th><th>Inv. remarketing</th><th>Leads</th><th>CPL remarketing</th></tr>
+        </thead>
+        <tbody id="tbEdad"></tbody>
+      </table>
+    </div>
+    <p class="note">El costo por lead de captación mejoró entre 12% y 17% en las franjas de 25 a 54 años y se mantuvo en 55 a 64. La franja de 65 o más subió 3,5% y la de 18 a 24 sumó solo 4 leads, por lo que su costo no es comparable. El público de 45 años en adelante, que se abrió con el mensaje de septiembre, sigue convirtiendo a costos bajos.</p>
+  </section>
+
+  <!-- ============ BÚSQUEDAS GOOGLE (solo Google) ============ -->
+  <section class="sec" id="secGoogleSearch">
+    <div class="sec-head"><h2>Qué buscan las personas antes de llegar</h2><span id="periodGoogleSearch">Búsquedas reales en Google Ads · octubre 2026</span></div>
+    <div class="duo">
+      <div class="panel panel-pad">
+        <p class="kpi-l" style="color:var(--up);margin-bottom:4px">Lo que mejor funciona</p>
+        <p style="font-size:13.5px;font-weight:600;margin-bottom:14px">Búsquedas con costo por lead por debajo del promedio</p>
+        <table>
+          <thead><tr><th>Búsqueda</th><th>Inversión</th><th>Leads</th><th>CPL</th></tr></thead>
+          <tbody id="tbTermOk"></tbody>
+        </table>
+      </div>
+      <div class="panel panel-pad">
+        <p class="kpi-l" style="color:var(--red);margin-bottom:4px">Lo que conviene revisar</p>
+        <p style="font-size:13.5px;font-weight:600;margin-bottom:14px">Búsquedas caras o sin resultado</p>
+        <table>
+          <thead><tr><th>Búsqueda</th><th>Inversión</th><th>Leads</th><th>CPL</th></tr></thead>
+          <tbody id="tbTermMal"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="panel panel-pad" style="margin-top:18px;border-left:3px solid var(--red)">
+      <p class="kpi-l" style="color:var(--red);margin-bottom:4px">Búsqueda genérica · reparto de presupuesto</p>
+      <p style="font-size:13.5px;font-weight:600;margin-bottom:14px">Con menos inversión, el costo por lead de la genérica siguió por encima de su tope de puja</p>
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr><th></th><th>Septiembre</th><th>Octubre</th><th>Variación</th></tr></thead>
+          <tbody>
+            <tr><td>Inversión</td><td>$8.174.682</td><td>$6.208.388</td><td><span class="flat-txt">-24,1%</span></td></tr>
+            <tr><td>Leads</td><td>810</td><td>583</td><td><span class="dn-txt">-28,1%</span></td></tr>
+            <tr><td>Costo por lead</td><td>$10.088</td><td>$10.651</td><td><span class="dn-txt">+5,6%</span></td></tr>
+            <tr><td>Tope de puja fijado en agosto</td><td colspan="2">$9.500 por lead</td><td><span class="dn-txt">12,1% por encima</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:13.5px;line-height:1.6;max-width:80ch;color:var(--body);margin-top:16px"><b style="color:var(--ink)">Qué pasó.</b> La inversión se desplazó de la genérica hacia Competencia (+39,8% de inversión y +39,6% de leads, costo por lead estable en $8.391) y Performance Max (+9,6% y +7,6%, a $7.019 por lead). Google en conjunto sostuvo sus leads (2.171 contra 2.178) con 4,8% menos de inversión.</p>
+      <p style="font-size:13.5px;line-height:1.6;max-width:80ch;color:var(--body);margin-top:10px"><b style="color:var(--ink)">Qué significa.</b> Gastar menos no abarató el lead de la genérica: su costo marginal alto parece venir de la demanda y de la competencia en esos términos, más que del presupuesto. Hoy la brecha contra el tope es de unos $670.000.</p>
+      <p style="font-size:13.5px;line-height:1.6;max-width:80ch;color:var(--body);margin-top:10px"><b style="color:var(--ink)">Qué proponemos evaluar.</b> <b>A:</b> seguir reasignando una parte de la genérica a Competencia y Performance Max. <b>B:</b> revisar primero los términos de la genérica de mayor costo (tabla de arriba) antes de bajar más presupuesto.</p>
+    </div>
+  </section>
+
+  <!-- ============ DISPOSITIVO GOOGLE (solo Google) ============ -->
+  <section class="sec" id="secGoogleDevice" style="margin-top:28px">
+    <details>
+      <summary style="cursor:pointer;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--g1);list-style:none;display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid var(--g3)">
+        <span style="font-size:14px">›</span> <span id="periodDevice">Detalle por dispositivo · Google Ads (octubre 2026)</span>
+      </summary>
+      <div class="panel tbl-scroll" style="margin-top:12px">
+        <table>
+          <thead>
+            <tr><th>Dispositivo</th><th>Inversión</th><th>Leads</th><th>CPL oct.</th><th>CPL sep.</th><th>Variación</th></tr>
+          </thead>
+          <tbody id="tbDisp"></tbody>
+        </table>
+      </div>
+      <p class="note">El celular concentra el 79,5% de la inversión de Google (76% en septiembre) y computadora bajó 19,7% su inversión con un costo por lead 6,6% menor. No se muestra la tasa de conversión por dispositivo porque los clics de la campaña de Demand Gen de awareness la distorsionan.</p>
+    </details>
+  </section>
+
+  <div class="foot">
+    <div>Shake Again - Reporte de performance para <b>iúnigo</b></div>
+    <div><b>Fuente:</b> Master Metrics / Google Ads + Meta Ads + Microsoft Ads + TikTok Ads - <span id="periodFooter">Comparativa vs septiembre 2026</span> · Moneda ARS</div>
+  </div>
+</main>
+
+<!-- Contenido embebido de respaldo: si por algún motivo el navegador no encuentra o no puede
+     cargar iunigo_findings_octubre_2026.js (archivos separados, carpeta distinta, etc.), el reporte
+     igual funciona con esta copia. El archivo .js externo, si está presente y carga bien, tiene
+     PRIORIDAD sobre esta copia — es el que conviene editar para actualizar contenido.
+     Esta copia se genera a partir del archivo externo, así que ambas versiones son idénticas. -->
+<script>
+window.IUNIGO_FINDINGS_DEFAULT = {
+  "_meta": {
+    "cliente": "iúnigo",
+    "periodo": "Octubre 2026",
+    "comparativo": "vs. septiembre 2026",
+    "actualizado": "2026-11-03"
+  },
+  "total": [
+    {
+      "id": "costo-poliza-octubre",
+      "featured": true,
+      "stat": "Los leads se sostuvieron, pero cerraron 13 pólizas menos: el costo por póliza sube a $398.001",
+      "detectamos": "Con -5,5% de inversión ($25.074.052) y -2,7% de leads (3.097 contra 3.182), el costo por lead del portfolio bajó a $8.096. Sin embargo, las pólizas cerradas de los medios pagos pasaron de 76 a 63 y la tasa de cierre de 2,70% a 2,25%, de modo que el costo por póliza subió de $349.216 a $398.001 (+14,0%). La diferencia está en Google: mantuvo sus leads de CRM (2.155 contra 2.163) pero cerró 52 pólizas contra 65 (tasa de 3,01% a 2,41%).",
+      "importa": "La eficiencia de medios mejoró, así que el movimiento del costo por póliza se explica después del lead, en la conversión a venta. Septiembre fue el mejor mes del año en tasa de cierre de Google (3,00% en la planilla): octubre queda por encima de junio y julio (2,06% y 2,13%), por lo que puede ser una vuelta al rango habitual y no un deterioro. Es una lectura a validar, no una conclusión.",
+      "accion": "Opciones a evaluar junto a iúnigo: (1) revisar con Meli si cambió algo en el proceso de contacto o en el mix de productos entre septiembre y octubre; (2) seguir el costo por póliza semanal contra la base de $349.216 de septiembre y la de $398.001 de octubre; (3) mantener la inversión de Google mientras no haya evidencia de que la caída del cierre sea estructural."
+    },
+    {
+      "id": "atribucion-salesforce",
+      "featured": true,
+      "stat": "El origen de una parte importante de los cierres sigue sin poder rastrearse a una campaña",
+      "detectamos": "Se hizo el rastreo de acciones y de UTMs de todas las plataformas y se compartió el listado con Meli para terminar de determinar de dónde salen las conversiones que Salesforce registra con fuente «iúnigo» e «IUNIGO». El resultado de la auditoría para Meta es consistente con lo que recibe iúnigo. En septiembre (último dato de CRM completo que tenemos), 44 de los 122 cierres del negocio (36%) llegaron como «Directo / sin campaña asignada»; para octubre solo contamos con el dato de los medios pagos.",
+      "importa": "Si parte de esos cierres nació en una campaña paga y perdió su atribución, el costo real por póliza de los medios es menor al que mostramos, y las decisiones de reparto de presupuesto entre plataformas se toman con una foto incompleta. Es la principal limitación de lectura del reporte hoy.",
+      "accion": "Ofrecer a iúnigo dos caminos, a elegir según lo que resulte más simple de su lado: (A) compartirnos un acceso de lectura a Salesforce; (B) hacer juntos una auditoría de cómo está configurada la atribución por UTMs en Salesforce. Cualquiera de las dos nos permitiría entender de dónde vienen realmente los cierres."
+    },
+    {
+      "id": "google-eficiencia-octubre",
+      "featured": true,
+      "stat": "Google generó los mismos leads con 4,8% menos de inversión",
+      "detectamos": "Google cerró octubre con 2.171 leads (contra 2.178) y una inversión de $17.403.260 (-4,8%): el costo por lead bajó de $8.391 a $8.016 (-4,5%), un -18% contra el pico de junio ($9.768). La campaña de marca consumió menos porque cayó la búsqueda de marca, y la inversión de búsqueda genérica se redistribuyó hacia Competencia y Performance Max.",
+      "importa": "Es la plataforma de menor costo por póliza ($334.678). Que mantenga el volumen gastando menos indica que el ajuste de reparto de septiembre funcionó, y deja presupuesto sin ejecutar que podemos decidir dónde reforzar.",
+      "accion": "Sostener el reparto actual y, para noviembre, evaluar dónde conviene colocar el presupuesto que la marca no consume: Competencia y Performance Max son las candidatas porque cerraron octubre por debajo del promedio de la cuenta ($8.391 y $7.019 por lead)."
+    }
+  ],
+  "pasos": {
+    "total": [
+      {
+        "area": "Atribución",
+        "texto": "Ofrecer a iúnigo acceso a Salesforce, o una auditoría conjunta de la atribución por UTMs, para identificar de dónde vienen los cierres con fuente «iúnigo» e «IUNIGO»."
+      },
+      {
+        "area": "TikTok",
+        "texto": "Pedirle a Meli que nos indique cómo recibe los leads de la plataforma, o revisar juntos las UTMs, para entender por qué 62 conversiones de plataforma no llegan al CRM."
+      },
+      {
+        "area": "Meta",
+        "texto": "Hacer un doble click con Meli sobre la baja tasa de conversión a póliza (0,84%): causa de los no cierres y tiempo que demora el llamado del call center."
+      },
+      {
+        "area": "Google",
+        "texto": "Validar con una compra de prueba que el evento «Compra finalizada», con la nueva URL vigente desde el 20/10, esté registrando correctamente."
+      },
+      {
+        "area": "Noviembre",
+        "texto": "Definir con iúnigo la aprobación del test de anuncios en ChatGPT y su financiamiento, y planificar el cambio de materiales de fines de noviembre."
+      }
+    ]
+  },
+  "google": [
+    {
+      "id": "google-brand-demanda",
+      "featured": true,
+      "stat": "Menor búsqueda de marca: la campaña de marca gastó 27% menos y generó los mismos leads",
+      "detectamos": "Las impresiones de la campaña de marca bajaron de 14.013 a 6.675 (-52%) y la inversión de $2.405.061 a $1.760.312 (-26,8%), pero los leads se mantuvieron (413 contra 403). El costo por lead pasó de $5.963 a $4.262 (-28,5%) y la tasa de conversión de clic a lead subió de 22,2% a 29,2%.",
+      "importa": "La campaña de marca captura una demanda que existe o no existe: cuando la búsqueda de marca baja, se gasta menos pero sin perder leads, por eso el costo mejora. Septiembre incluyó la acción de cumpleaños, que pudo haber elevado la búsqueda de marca; es una hipótesis que podemos contrastar con los datos de búsqueda orgánica de iúnigo.",
+      "accion": "Mantener la campaña de marca sin forzar presupuesto (el subgasto es una señal sana, no un faltante) y llevar el remanente a las campañas con demanda disponible. Seguir su volumen mes a mes para distinguir un efecto de la acción de septiembre de un cambio de tendencia."
+    },
+    {
+      "id": "google-reparto-generica",
+      "featured": true,
+      "stat": "Búsqueda genérica: menos inversión, pero el costo por lead sigue por encima de su tope",
+      "detectamos": "La búsqueda genérica bajó su inversión de $8.174.682 a $6.208.388 (-24,1%) y sus leads de 810 a 583 (-28,1%). Su costo por lead pasó de $10.088 a $10.651 (+5,6%), 12% por encima del tope de $9.500. En paralelo, Competencia subió 39,8% su inversión y 39,6% sus leads (costo por lead estable en $8.391) y Performance Max subió 9,6% su inversión y 7,6% sus leads ($7.019).",
+      "importa": "Reducir presupuesto no abarató el lead de la genérica, lo que sugiere que el costo marginal alto no viene del presupuesto sino de la demanda y la competencia en esos términos. El ajuste de reparto fue favorable: el portfolio de Google sostuvo el volumen con menos gasto.",
+      "accion": "Dos opciones a evaluar: (A) seguir reasignando una parte de la genérica a Competencia y Performance Max, que tienen costos por lead menores; (B) revisar los términos de la genérica de mayor costo (detalle en la tabla de búsquedas) antes de seguir bajando presupuesto."
+    },
+    {
+      "id": "google-demand-gen-desdoblada",
+      "featured": true,
+      "stat": "Demand Gen desdoblada: el remarketing generó 19 conversiones donde antes no había ninguna",
+      "detectamos": "La campaña única de Demand Gen, que servía de primer impacto pero no generaba conversiones, se separó en dos: una de awareness con presupuesto mínimo aislado ($321.029; 637.281 impresiones y 34.812 clics) y una de remarketing para visitantes del sitio que no se convirtieron en leads ($267.377). El remarketing cerró con 19 conversiones a $14.102 por lead.",
+      "importa": "Se conserva el primer impacto sin que contamine el análisis de conversión y se suma una vía para recuperar visitantes. El costo por lead del remarketing es mayor al promedio de la cuenta ($8.016), por lo que su valor depende de si esos leads cierran. Además, el awareness sumó muchos clics de bajo costo que bajan la tasa de conversión general de Google: es un efecto de composición, no un deterioro.",
+      "accion": "Mantener ambas campañas (están en el media plan de noviembre, con $300.000 para awareness y $400.000 para remarketing) y pedir a iúnigo el cierre de esos leads para confirmar si justifican su costo."
+    },
+    {
+      "id": "google-conversiones-medicion",
+      "stat": "Cambio de eventos de conversión el 20/10: la compra finalizada todavía no registra",
+      "detectamos": "El 20/10 se quitó la conversión «Cotización finalizada» y se dejó como principal «Envío de formulario con conversiones mejoradas». El volumen se mantuvo: 483 conversiones en la semana del cambio y 494 en la siguiente. También se reemplazó la URL de destino del evento «Compra finalizada» por la página de pago finalizado de iúnigo (pago-finalizado/exito). Entre el 20 y el 31 de octubre no se registró ninguna compra finalizada en Google.",
+      "importa": "Puede ser que no haya habido compras online atribuibles a Google en esos 12 días, o que el evento no esté disparando bien. Como en septiembre se emitieron 45 pólizas online en total, es esperable ver algunas atribuidas a Google. Era un pendiente de medición, y queremos confirmar que quedó resuelto.",
+      "accion": "Hacer una compra de prueba de punta a punta junto al equipo técnico de iúnigo y revisar con Tag Assistant que el evento se dispare en la página final. Si registra, esperar a noviembre para leer volumen real; si no, corregir la etiqueta."
+    },
+    {
+      "id": "google-dispositivo-octubre",
+      "stat": "Computadora: -14% de leads con -20% de inversión y mejor costo por lead",
+      "detectamos": "La inversión en computadora bajó de $4.269.254 a $3.429.069 (-19,7%) y sus leads de 504 a 434 (-14%), con un costo por lead de $7.909 contra $8.470 (-6,6%). El celular concentra ahora el 79,5% de la inversión de Google (76% en septiembre), con 1.723 leads a $8.027.",
+      "importa": "El tráfico se desplaza al celular, donde el costo por lead es similar: no hay una penalización por el cambio de mix.",
+      "accion": "Sostener el seguimiento por dispositivo, sin cambios de ajustes por ahora."
+    }
+  ],
+  "meta": [
+    {
+      "id": "meta-conversion-cierre",
+      "featured": true,
+      "stat": "Meta convierte 0,84% de sus conversiones de plataforma en pólizas",
+      "detectamos": "Las 713 conversiones que reportó Meta en octubre derivaron en 6 pólizas cerradas: 0,84% (en septiembre, 0,86%). Al CRM llegaron 494 leads, 30,7% menos que las conversiones de plataforma, y de esos leads cerró el 1,21%, la tasa más baja de los canales con volumen.",
+      "importa": "El costo por lead de Meta mejora mes a mes, pero el costo por póliza ($689.914) depende de lo que ocurre después del formulario. Con los datos que tenemos no podemos saber si el cuello de botella está en la calidad del lead, en el tiempo de contacto o en el proceso comercial.",
+      "accion": "Hacer un doble click con Meli sobre dos preguntas: cuál es la causa principal de los leads de Meta que no cierran y cuánto tarda el call center en llamar a un lead de Meta. Con eso podemos decidir si el foco de noviembre está en el creativo y la segmentación, o en la velocidad de contacto."
+    },
+    {
+      "id": "meta-ubicaciones",
+      "featured": true,
+      "stat": "Leads +2,4% y costo por lead -5,5% tras depurar ubicaciones",
+      "detectamos": "A mediados de octubre se excluyeron Audience Network y las aplicaciones, ubicaciones que habían sumado $173.892 en el mes (4,2% de la inversión) con un costo por lead de $6.688. Meta cerró con 713 leads (contra 696) a $5.806 (contra $6.146): segundo mes consecutivo de baja del costo por lead. La última semana del mes fue la de mayor volumen (178 leads) y menor costo ($5.078).",
+      "importa": "Las ubicaciones excluidas rendían cerca del promedio, así que su retiro no explica por sí solo la mejora: aporta un mix más limpio y la posibilidad de concentrar la inversión en Instagram y Facebook feed. Dos semanas son una muestra corta para atribuirlo con certeza.",
+      "accion": "Mantener la exclusión y confirmar en noviembre, con cuatro semanas completas, si el costo por lead se sostiene por debajo de $6.000."
+    },
+    {
+      "id": "meta-contenido-octubre",
+      "featured": true,
+      "stat": "Test de contenido de octubre: las piezas nuevas entraron con presupuesto de prueba",
+      "detectamos": "La estática 1 de septiembre sigue concentrando el 97% de los leads de captación (508 de 523, a $4.343 por lead, contra $4.765 en septiembre). Las piezas nuevas de octubre en captación sumaron $98.070 y 15 leads. La de mejor resultado, Video Nuevos Leads, cerró 10 leads a $4.769. En remarketing, las piezas de octubre reemplazaron a los reels de septiembre y concentran el 89% del gasto: Video RMK (71 leads a $7.635), Ad 01 RMK v2 (48 leads a $8.317) y Ad 02 RMK (46 leads a $6.948).",
+      "importa": "En captación, la mayor parte del volumen depende todavía de una sola pieza. En remarketing, el costo por lead subió 9,3% ($7.100 a $7.763) con 20 leads menos: el recambio de piezas todavía no mejora el resultado.",
+      "accion": "Continuar el test de contenido en noviembre, dándole presupuesto suficiente a las piezas nuevas de captación para poder compararlas de igual a igual con la estática 1, y medirlas contra la tasa de cierre de 1,21%."
+    },
+    {
+      "id": "meta-edades-octubre",
+      "stat": "El costo por lead de captación mejoró entre los 25 y los 54 años",
+      "detectamos": "En captación, el costo por lead bajó entre 12% y 17% en las franjas de 25 a 34 ($4.553), 35 a 44 ($4.514) y 45 a 54 ($4.284), y se mantuvo en 55 a 64 ($4.517). La franja de 65 o más subió 3,5% ($3.961), y la de 18 a 24 pasó de $2.192 a $7.982 con solo 4 leads.",
+      "importa": "El público de 45 años en adelante, que se abrió con el mensaje de septiembre, sigue convirtiendo a costos bajos sin el gancho del sorteo.",
+      "accion": "Mantener abiertas las franjas de 45 años en adelante en noviembre."
+    },
+    {
+      "id": "meta-trafico-ig",
+      "stat": "El carrusel de tráfico a Instagram generó 4.803 clics a $33 cada uno",
+      "detectamos": "Post IG «Manejar de noche» invirtió $157.360 en tráfico, con 97.222 impresiones y 4.803 clics, y 1 lead atribuido.",
+      "importa": "Es una campaña de tráfico, sin objetivo de lead: se evalúa por clics y por el aporte a la audiencia de remarketing.",
+      "accion": "Mantenerla en el plan de noviembre ($200.000) y evaluar su aporte al remarketing."
+    }
+  ],
+  "bing": [
+    {
+      "id": "bing-demanda-octubre",
+      "featured": true,
+      "stat": "Menos búsquedas, pero Microsoft sigue siendo el canal con mejor tasa de cierre",
+      "detectamos": "Las impresiones bajaron 26,8% (543.018 a 397.707) y la inversión 12,7% (de $3.160.968 a $2.758.917, con IVA). Microsoft generó 151 leads (contra 183) a $18.271 por lead (+5,8%), y cerró 5 pólizas, la misma cantidad que en septiembre, con la tasa de cierre más alta del mix (3,29%). Su costo por póliza fue de $551.783 (-12,7%).",
+      "importa": "Microsoft convierte mejor el lead en venta, pero su costo por póliza ($551.783) sigue por encima del de Google ($334.678) porque el lead cuesta más del doble. El menor gasto responde a menos búsquedas disponibles, no a un recorte de presupuesto. Además, los datos de CRM de octubre (152 leads y 5 cierres) coinciden exactamente con los de septiembre: conviene confirmar que sean datos independientes.",
+      "accion": "Confirmar con iúnigo los datos de CRM de octubre para Microsoft y, mientras tanto, sostener el canal en su nivel de demanda disponible."
+    },
+    {
+      "id": "bing-presupuesto-noviembre",
+      "stat": "Octubre consumió 78% del presupuesto en dólares: el plan de noviembre no lo aumenta",
+      "detectamos": "En dólares, octubre consumió US$1.471 de los US$1.877 asignados antes de impuestos (78,4%, contra 89,8% en septiembre). El plan de noviembre prevé $3.231.729 con IVA, equivalente a US$1.723 antes de impuestos: 8% por debajo del presupuesto asignado en septiembre y octubre.",
+      "importa": "El aumento de 17% que se ve contra el consumo real de octubre no es un incremento de presupuesto: es volver a un nivel que el canal no llegó a ejecutar por falta de demanda.",
+      "accion": "Mantener el plan de noviembre y revisar a mitad de mes si la demanda alcanza para ejecutarlo; si no, reasignar el remanente."
+    }
+  ],
+  "tiktok": [
+    {
+      "id": "tiktok-crm-utms",
+      "featured": true,
+      "stat": "TikTok reporta 62 leads y el CRM no registra ninguno",
+      "detectamos": "La plataforma reportó 62 conversiones en octubre ($484.009 en la campaña de leads), pero Salesforce no registró ningún lead ni cierre de TikTok. En agosto ingresaron 2 de 136, en septiembre 0 de 125 y en julio 0 de 99. Las UTMs ya se auditaron y el listado está compartido con Meli.",
+      "importa": "Sin leads en el CRM no podemos saber si el tráfico de TikTok cierra, y tras cuatro meses de mediciones la decisión de escala o pausa sigue sin sustento.",
+      "accion": "Pedirle a Meli que nos indique cómo recibe los leads de la plataforma, o revisar juntos las UTMs, para entender por qué no llegan al CRM. Con ese dato, definir juntos el rol de TikTok en el mix."
+    },
+    {
+      "id": "tiktok-cpl-nuevos-ads",
+      "stat": "El costo por lead de TikTok subió a $7.807, con una señal de mejora tras los anuncios nuevos",
+      "detectamos": "Los leads cayeron de 125 a 62 (-50%) con una inversión casi igual en la campaña de leads ($484.009, -5,9%); el costo por lead pasó de $4.113 a $7.807. La audiencia base cerró 54 conversiones a $7.947 y el lookalike 8 a $6.860, una muestra todavía chica. Tras el reemplazo de anuncios del 19/10, las dos últimas semanas sumaron 29 leads a $6.871, contra 29 leads a $8.127 en las dos anteriores.",
+      "importa": "La baja de leads empezó a fines de septiembre, antes del cambio de anuncios. La mejora posterior es una señal incipiente, pero con muestras de 2 semanas no permite concluir.",
+      "accion": "Seguir midiendo la campaña de leads separada de la de alcance y revisar el resultado con cuatro semanas completas de los anuncios nuevos antes de decidir sobre el presupuesto."
+    }
+  ]
+};
+</script>
+<script src="iunigo_findings_octubre_2026.js"></script>
+<script>
+(function(){
+"use strict";
+
+var RED="#9A0000", INK="#141414", G1="#9E9E9E", G2="#CCCCCC";
+
+// ---------- PERÍODO DEL REPORTE (única fuente de verdad) ----------
+// Cambiar SOLO estas dos líneas al armar el reporte de un mes nuevo.
+// Todo el texto de "mes actual" / "mes anterior" del reporte se arma desde acá:
+// header, comparativos, footer, badges de variación MoM y leyendas de gráficos.
+var PERIOD_CUR  = {label:"Octubre", low:"octubre", abr:"oct.", year:2026, diaFin:31};
+var PERIOD_PREV = {label:"Septiembre", low:"septiembre", abr:"sep.", year:2026};
+
+function aplicarPeriodo(){
+  var set = function(id, txt){ var el=document.getElementById(id); if(el) el.textContent = txt; };
+  document.title = "iúnigo - Reporte de performance - "+PERIOD_CUR.label+" "+PERIOD_CUR.year;
+  set("periodTopMeta", PERIOD_CUR.label+" "+PERIOD_CUR.year+" (mes cerrado)");
+  set("periodH1", "· "+PERIOD_CUR.low+" "+PERIOD_CUR.year);
+  set("periodIntro", "del 1 al "+PERIOD_CUR.diaFin+" de "+PERIOD_CUR.low+", comparado contra "+PERIOD_PREV.low+" "+PERIOD_PREV.year);
+  set("periodCompareHead", PERIOD_CUR.label+" vs. "+PERIOD_PREV.low+" "+PERIOD_PREV.year);
+  set("periodMixLabel", PERIOD_CUR.label+" "+PERIOD_CUR.year);
+  set("periodMetaCreatives", "Rendimiento por pieza · "+PERIOD_CUR.low+" "+PERIOD_CUR.year);
+  set("periodMetaAudience", "Costo por lead por franja etaria · "+PERIOD_CUR.low+" "+PERIOD_CUR.year);
+  set("periodGoogleSearch", "Búsquedas reales en Google Ads · "+PERIOD_CUR.low+" "+PERIOD_CUR.year);
+  set("periodDevice", "Detalle por dispositivo · Google Ads ("+PERIOD_CUR.low+" "+PERIOD_CUR.year+")");
+  set("periodCierres", "Datos de CRM de iúnigo · "+PERIOD_CUR.low+" "+PERIOD_CUR.year);
+  set("periodFooter", "Comparativa vs "+PERIOD_PREV.low+" "+PERIOD_PREV.year);
+  set("thCpl", "CPL "+PERIOD_CUR.abr);
+  set("invShiftTitle", "Distribución de inversión · "+PERIOD_CUR.low+" real → "+PLAN_NEXT.low+" (plan)");
+}
+var FINDINGS_FILE = "iunigo_findings_octubre_2026.js";
+
+// Mes siguiente, para el bloque de distribución planificada (fuente: "iúnigo - Data 2026", hoja MediaPlanProyeccion v2).
+var PLAN_NEXT = {label:"Noviembre", low:"noviembre", budget:26500000, leads:3251, cpl:8647};
+
+// ---------- DATOS (fuente única: Master Metrics) ----------
+// cur = octubre 2026 (mes reportado) · prev = septiembre 2026 (mes de comparación).
+// Microsoft Ads: gasto en USD convertido a $1.550 con 21% de IVA aplicado (ambos meses, base comparable).
+// Google: las conversiones se reatribuyen con los días; septiembre se actualizó a 2.178 (se había reportado 2.166).
+var D = {
+  total:{ label:"Todas las plataformas",
+    cur:{inv:25074052, leads:3097.1, clics:63837, imp:4223251},
+    prev:{inv:26540417, leads:3182.4, clics:28897, imp:4184545}, share:100 },
+  google:{ label:"Google Ads",
+    cur:{inv:17403260, leads:2171.1, clics:46745, imp:981360},
+    prev:{inv:18280187, leads:2178.4, clics:13490, imp:395636}, share:69.4 },
+  meta:{ label:"Meta Ads",
+    cur:{inv:4139483, leads:713, clics:11033, imp:1471364},
+    prev:{inv:4277772, leads:696, clics:9049, imp:2024911}, share:16.5 },
+  bing:{ label:"Microsoft Ads (con IVA)",
+    cur:{inv:2758917, leads:151, clics:2754, imp:397707},
+    prev:{inv:3160968, leads:183, clics:3178, imp:543018}, share:11.0 },
+  tiktok:{ label:"TikTok Ads",
+    cur:{inv:772392, leads:62, clics:3305, imp:1372820},
+    prev:{inv:821490, leads:125, clics:3180, imp:1220980}, share:3.1 }
+};
+
+// Presupuesto asignado a octubre según el media plan, con Microsoft incluyendo IVA (misma base que la ejecución real).
+var PLAN_CUR = { asignado:26500000, ejecutado:25074052 };
+
+// Distribución de inversión prevista para noviembre en el media plan vigente (% de $26,5M; Microsoft con IVA).
+// No incluye la línea de prueba en ChatGPT ($1.612.000), pendiente de aprobación de iúnigo.
+var PLAN_MIX = { google:67.9, meta:16.9, bing:12.2, tiktok:3.0 };
+
+// Datos de CRM y cierres — provistos por el cliente (iúnigo), planilla "iunigo - Data 2026", hoja Anual.
+// No provienen de Master Metrics. Corte: fecha de cierre de octubre 2026. Solo medios pagos: para octubre no se recibió
+// el detalle de "Directo / sin campaña asignada", ni el de canal de emisión y producto.
+// plat = conversiones que reporta la plataforma · crm = leads ingresados al CRM · cie = pólizas cerradas.
+// Sufijo C = mes reportado (octubre) · P = mes anterior (septiembre).
+var CIERRES = [
+  {origen:"Google Ads",    platC:2171.1, crmC:2155, crmP:2163, cieP:65, cieC:52, invC:17403260},
+  {origen:"Meta Ads",      platC:713,    crmC:494,  crmP:495,  cieP:6,  cieC:6,  invC:4139483},
+  {origen:"Microsoft Ads", platC:151,    crmC:152,  crmP:152,  cieP:5,  cieC:5,  invC:2758917},
+  {origen:"TikTok Ads",    platC:62,     crmC:0,    crmP:0,    cieP:0,  cieC:0,  invC:772392, alerta:true}
+];
+
+// Serie de costo por póliza cerrada de los medios pagos (CRM de iúnigo). Microsoft con IVA en todos los meses.
+var SERIE_COSTO = [
+  {m:"Julio 2026",      v:513530, cierres:47},
+  {m:"Agosto 2026",     v:382349, cierres:69},
+  {m:"Septiembre 2026", v:349216, cierres:76},
+  {m:"Octubre 2026",    v:398001, cierres:63, actual:true}
+];
+
+// Emisiones por producto: sin dato de octubre (pendiente de iúnigo).
+var PRODUCTO = [];
+
+// Ranking de campañas. ic/lc = inversión y leads del mes reportado · ip/lp = del mes anterior.
+var CAMP = [
+  {p:"google", n:"Google · Búsqueda genérica (Non-Brand)", ic:6208388, lc:582.9, ip:8174682, lp:810.3, nota:"Sobre tope de puja"},
+  {p:"google", n:"Google · Performance Max", ic:4502549, lc:641.5, ip:4107019, lp:596.2},
+  {p:"google", n:"Google · Búsqueda competencia", ic:4317920, lc:514.6, ip:3089553, lp:368.6},
+  {p:"google", n:"Google · Búsqueda de marca (Brand)", ic:1760312, lc:413.1, ip:2405061, lp:403.3, nota:"tCPA"},
+  {p:"google", n:"Google · Demand Gen remarketing", ic:267377, lc:19.0, ip:null, lp:null, nota:"Nueva"},
+  {p:"google", n:"Google · Demand Gen awareness", ic:321029, lc:null, ip:503872, lp:null, nota:"Upper-funnel"},
+  {p:"meta", n:"Meta · Captación de nuevos usuarios", ic:2307316, lc:523, ip:2331746, lp:479},
+  {p:"meta", n:"Meta · Remarketing", ic:1467184, lc:189, ip:1483804, lp:209},
+  {p:"meta", n:"Meta · Video de alcance", ic:202991, lc:null, ip:357225, lp:null, nota:"Notoriedad"},
+  {p:"meta", n:"Meta · Tráfico Instagram", ic:161992, lc:null, ip:104997, lp:null, nota:"Tráfico"},
+  {p:"bing", n:"Microsoft · Búsquedas genéricas", ic:2120947, lc:110, ip:2468402, lp:133, nota:"IVA incl."},
+  {p:"bing", n:"Microsoft · Marca", ic:637970, lc:41, ip:692566, lp:49, nota:"IVA incl."},
+  {p:"tiktok", n:"TikTok · Generación de leads", ic:484009, lc:62, ip:514136, lp:125},
+  {p:"tiktok", n:"TikTok · Alcance", ic:288383, lc:null, ip:307354, lp:null, nota:"Notoriedad"}
+];
+
+// Meta por franja etaria. ia/la = captación · ir/lr = remarketing · caPrev = CPL captación del mes anterior (septiembre).
+var EDAD = [
+  {e:"18 a 24",   ia:31929,  la:4,   ir:22696,  lr:13, caPrev:2192},
+  {e:"25 a 34",   ia:341451, la:75,  ir:136670, lr:27, caPrev:5373},
+  {e:"35 a 44",   ia:654576, la:145, ir:284349, lr:34, caPrev:5411},
+  {e:"45 a 54",   ia:655453, la:153, ir:371670, lr:48, caPrev:4894},
+  {e:"55 a 64",   ia:402073, la:89,  ir:343519, lr:33, caPrev:4615},
+  {e:"65 o más",  ia:221824, la:56,  ir:308278, lr:33, caPrev:3826}
+];
+
+var TERM_OK = [
+  {t:"unigo", i:43795, l:29.7, c:1472},
+  {t:"iunigo", i:890539, l:227.4, c:3917},
+  {t:"iunigo seguros", i:403297, l:81.9, c:4925},
+  {t:"cotizar seguro auto federacion patronal", i:61076, l:11.0, c:5552},
+  {t:"kavak argentina", i:61144, l:11.0, c:5559},
+  {t:"seguro", i:60690, l:10.5, c:5780},
+  {t:"iuñigo", i:79052, l:13.0, c:6081}
+];
+
+var TERM_MAL = [
+  {t:"seguro auto terceros completo", i:253525, l:15.0, c:16902},
+  {t:"cotizar seguro auto simulador", i:154359, l:8.0, c:19295},
+  {t:"seguro auto", i:82857, l:5.0, c:16571},
+  {t:"cotizar seguro de auto sin datos personales", i:65773, l:4.0, c:16443},
+  {t:"cotizador de seguros", i:61701, l:3.0, c:20768},
+  {t:"seguro para autos", i:48987, l:1.0, c:48987}
+];
+
+// Dispositivo. i/l = inversión y leads de octubre · cp = CPL de septiembre.
+var DISP = [
+  {d:"Celular", i:13830929, l:1723.1, cp:8377},
+  {d:"Computadora", i:3429069, l:433.5, cp:8470},
+  {d:"Tablet", i:92460, l:6.0, cp:8525},
+  {d:"TV conectada", i:50800, l:8.4, cp:5286}
+];
+
+// Detalle por creativo — Meta (ad-level, Master Metrics). Se muestran top 5 por leads.
+var META_ADQ = [
+  {n:"Estatica_1_Sept26", tipo:"banner", estado:"activo", inv:2206204, leads:508},
+  {n:"Video_NuevosLeads_Oct26", tipo:"video", estado:"activo", inv:47689, leads:10},
+  {n:"Ad_1_Coberturas_Oct26", tipo:"pieza", estado:"activo", inv:28665, leads:4},
+  {n:"Ad_2_NoPaguesDeMas_Oct26", tipo:"pieza", estado:"activo", inv:15072, leads:1},
+  {n:"Ad_3_NoPaguesDeMas_Sunny_Oct26", tipo:"pieza", estado:"activo", inv:6644, leads:0},
+  {n:"Estatica_2_Sept26", tipo:"banner", estado:"activo", inv:2148, leads:0}
+];
+var META_RMK = [
+  {n:"Video_RMK_Oct26", tipo:"video", estado:"activo", inv:542064, leads:71},
+  {n:"Ad_01_RMK_Oct26 v2", tipo:"pieza", estado:"activo", inv:399236, leads:48},
+  {n:"Ad_02_RMK_Oct26", tipo:"pieza", estado:"activo", inv:319626, leads:46},
+  {n:"Reel_1_Sept26", tipo:"video", estado:"activo", inv:149533, leads:20},
+  {n:"Reel_2_Sept26", tipo:"video", estado:"activo", inv:8143, leads:2},
+  {n:"Ad_01_RMK_Oct26", tipo:"pieza", estado:"activo", inv:48581, leads:2}
+];
+// Piezas de alcance y tráfico (sin objetivo de lead).
+var META_CUMPLE = [
+  {n:"Post IG - Carrusel \"manejar de noche\"", tipo:"banner", obj:"Tráfico", inv:157360, imp:97222, clics:4803},
+  {n:"Video_1_Oct26_v2", tipo:"video", obj:"Alcance", inv:74949, imp:244370, clics:157},
+  {n:"Ad_02_Coberturas_Oct26", tipo:"pieza", obj:"Alcance", inv:66447, imp:237474, clics:204},
+  {n:"Ad_01_HayCosas_Oct26", tipo:"pieza", obj:"Alcance", inv:47009, imp:157478, clics:131},
+  {n:"Carrusel2_Sept26", tipo:"banner", obj:"Alcance", inv:11797, imp:41129, clics:40}
+];
+
+// URLs de imagen reales del creativo, vía Master Metrics (ad_image_url) — Meta únicamente.
+// Son URLs firmadas del CDN de Meta (scontent-*.fbcdn.net) con expiración; si dejan de cargar,
+// el fallback visual las reemplaza automáticamente por el ícono de formato.
+var META_IMG = {
+  "Estatica_1_Sept26": "https://scontent-ord5-2.xx.fbcdn.net/v/t45.1600-4/784875721_3644055379083182_8898647672698502220_n.png?_nc_cat=103&ccb=1-7&_nc_ohc=rN0sf8cMiUMQ7kNvwG6cJ-e&_nc_oc=AdrKUchkWpIc_uq_DgmHMWBMm4R9b9C9-kW_fF_bOZWpTfGswJWOIpsGcb_l2x4iyno&_nc_zt=1&_nc_ht=scontent-ord5-2.xx&edm=AOgd6ZUEAAAA&_nc_gid=2lrKk7PNnyCwqb-C9c7wsw&_nc_tpa=Q5bMBQKANpsYYkEjt2ZekpaFFiBZ5AXr2fgq38ife-ZbSiZL42b6oCxBka8eivV_GZJOsk9uqoPvAW7C&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=52f3c4&_nc_sid=58080a&oh=00_AQND_X4pCnugZxAahSkFGtSCnlesua383JcQKOxH2DWlUQ&oe=6ACB2DE8",
+  "Estatica_2_Sept26": "https://scontent-ord5-1.xx.fbcdn.net/v/t45.1600-4/786434402_3644057335749653_5777120581061522828_n.png?_nc_cat=101&ccb=1-7&_nc_ohc=HbgQRbUY1mYQ7kNvwGhiCsl&_nc_oc=AdrjhufmY0WrG_W-0GuYmGZuzjujtz_LWarSCcxgF7y2WlhZHozEs4TjnuUvdEvi_3Y&_nc_zt=1&_nc_ht=scontent-ord5-1.xx&edm=AOgd6ZUEAAAA&_nc_gid=2lrKk7PNnyCwqb-C9c7wsw&_nc_tpa=Q5bMBQIJcMPU_ZW-kQ4GuaFL8KYhTZzBnrEINf7HmRCp7j_UunR7bKGWQb29jxJFsXhG5W138URX34cL&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=52f3c4&_nc_sid=58080a&oh=00_AQMPJk1vHKRMiCzjjf6GPO6YfwRqI14-4ogFdE2j2nlbXw&oe=6ACB3EDA",
+  "Estatica_3_Sept26": "https://scontent-ord5-1.xx.fbcdn.net/v/t45.1600-4/782830038_3644059545749432_4501391712122764732_n.png?_nc_cat=109&ccb=1-7&_nc_ohc=sN15-nuwuEMQ7kNvwGv-_Wr&_nc_oc=AdoOllTB5oDqdG_tnE3cHvir5fppjirwG8VmM-h3cHziPQTDEps-bgwKamrnGGn1Ayg&_nc_zt=1&_nc_ht=scontent-ord5-1.xx&edm=AOgd6ZUEAAAA&_nc_gid=2lrKk7PNnyCwqb-C9c7wsw&_nc_tpa=Q5bMBQJvIcrpZ5qobcafRa_uscohmrqmpmm8pkrrHKqqi2HxlsVfP_Ts_JUofnPjnZPdJAwEMkolQRca&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=52f3c4&_nc_sid=58080a&oh=00_AQOeN64Uciyby9clEw55xsEnnIwDt4A0qZ35wsPgnmAAbg&oe=6ACB3D4C",
+  "Reel_1_Sept26": "https://scontent-ord5-2.xx.fbcdn.net/v/t15.5256-10/792235388_1624080446375194_6314018057039077881_n.jpg?_nc_cat=104&ccb=1-7&_nc_ohc=qm8sXolbKJ8Q7kNvwH0qga-&_nc_oc=AdphRxvKuliXisMPtcIZMyD2uAsOzYDB9aUMiiedQ5EUvUm0q56N9vTgKO7zxKBIJ28&_nc_zt=23&_nc_ht=scontent-ord5-2.xx&edm=AOgd6ZUEAAAA&_nc_gid=2lrKk7PNnyCwqb-C9c7wsw&_nc_tpa=Q5bMBQKtgpxlKc2oAzOU-76cALLMwYHtT9aXv-XuxOG_cOPimNtZYGFaVsluC2_DPHefEUOZQKo7Jg9l&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=b696e2&_nc_sid=58080a&oh=00_AQM3FwCGXvuKSpl_urhHBW7FBWgPMMNk6rSs9iNwmrvxyg&oe=6ACB4F99",
+  "Reel_2_Sept26": "https://scontent-ord5-2.xx.fbcdn.net/v/t15.5256-10/791483293_1425161942837727_7808910375201796348_n.jpg?_nc_cat=103&ccb=1-7&_nc_ohc=SFXCTBGioqEQ7kNvwHF4oVY&_nc_oc=AdpmVSN3hhWYcuLzWeCJHygVuoXreUGzAnVgrXG8OZZ-WmvYQFEzs3EsjLe_hEZxOFk&_nc_zt=23&_nc_ht=scontent-ord5-2.xx&edm=AOgd6ZUEAAAA&_nc_gid=2lrKk7PNnyCwqb-C9c7wsw&_nc_tpa=Q5bMBQLL5mDI09v1_0X1P2RS-TJFWD37UhPw9SLcb1ncdmcQ-KbNe4hHIYW8JBVopxaLQTNY56Z_Rg_1&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=b696e2&_nc_sid=58080a&oh=00_AQMwkYUXEtk7yT9KZlD26bKqfk4D4Ou20TQMzGFt2eyTOA&oe=6ACB2D8D",
+  "Reel_3_Sept26": "https://scontent-ord5-2.xx.fbcdn.net/v/t15.5256-10/791014212_1074726895301102_4945537197017756853_n.jpg?_nc_cat=107&ccb=1-7&_nc_ohc=nSMt_kPd_ecQ7kNvwFksB8r&_nc_oc=AdriI087NDl8AUau-DvkRyjiw1u5nHh2djGJmRRC29Kl2eaMYZ-njxzB3sSejgtxTTo&_nc_zt=23&_nc_ht=scontent-ord5-2.xx&edm=AOgd6ZUEAAAA&_nc_gid=2lrKk7PNnyCwqb-C9c7wsw&_nc_tpa=Q5bMBQKe3EccsIl7a1yArFOCUAHbwasOJ8rS4BFYmZUnkpmALs8iDCH9XMSrvvm_k4nD9US71-VeRve-&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=b696e2&_nc_sid=58080a&oh=00_AQPl9ob6a4Vws4fw96QkgqphC39nFIpCxGxVg2ny7gd5Gw&oe=6ACB2DB1",
+  "Carrusel1_Sept26": "https://scontent-ord5-2.xx.fbcdn.net/v/t45.1600-4/788104709_3644013405754046_5320217068296359262_n.png?_nc_cat=107&ccb=1-7&_nc_ohc=DHT4V7RtlTcQ7kNvwFjUCy_&_nc_oc=Adp6iMSjfHTEzhwS9Vj9GHpTm8w5Le8xu7qK0Cr6IBqmwIULJx3WUWU_bUPNfPN3ycM&_nc_zt=1&_nc_ht=scontent-ord5-2.xx&edm=AOgd6ZUEAAAA&_nc_gid=2lrKk7PNnyCwqb-C9c7wsw&_nc_tpa=Q5bMBQKJT-ICwsDh5bVX7hfz7zkzDNnBAgMp99x50jsTAyJtjA1GgrqHCjHwny1dsfrj0ymq2CaW0V6p&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=52f3c4&_nc_sid=58080a&oh=00_AQOga7kEE8g85Vn6p6c9EzzsipNztO8zTe-UYhDOpMM4eg&oe=6ACB22ED",
+  "Carrusel2_Sept26": "https://scontent-ord5-2.xx.fbcdn.net/v/t45.1600-4/788964924_3644043629084357_3649267213932166420_n.png?_nc_cat=100&ccb=1-7&_nc_ohc=GHpg8JTmMyYQ7kNvwGxIqTy&_nc_oc=Adrl_aVZwhgS7hBNU1TqsP7NZuzOUPt1ALfBYHFQptKiL8U85DEujt8Pos4_kLg2-94&_nc_zt=1&_nc_ht=scontent-ord5-2.xx&edm=AOgd6ZUEAAAA&_nc_gid=2lrKk7PNnyCwqb-C9c7wsw&_nc_tpa=Q5bMBQJHilvIxwcL9zQqdsOSQ7UzJUUXrDtfpF6cTUE_r1OTdGDOkgaVCXW9T9eW_RbHV9QTgV2dMenp&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=52f3c4&_nc_sid=58080a&oh=00_AQONpcSGwVW-dM1yv00Q87rTusM1RAkOOBYI4tnb4HSxag&oe=6ACB34E3",
+  "Carrusel3_Sept26": "https://scontent-ord5-1.xx.fbcdn.net/v/t45.1600-4/781550021_3644049672417086_5780276677679671000_n.png?_nc_cat=110&ccb=1-7&_nc_ohc=TmqEvP0tNx4Q7kNvwHk8hh8&_nc_oc=AdpWFfB9HhGhTePZC6SbBI7Pda2-V_HdwY4V76nFf9qX5WICsSCQtGnPPKg0bUiQB6E&_nc_zt=1&_nc_ht=scontent-ord5-1.xx&edm=AOgd6ZUEAAAA&_nc_gid=2lrKk7PNnyCwqb-C9c7wsw&_nc_tpa=Q5bMBQJZzhOcqJZPN3KVNPpbXVx5xPf500C6MgYryiZqp_6cs5g8LHAsVx4_qqDFpMqtbTcYFOBpXiRv&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=52f3c4&_nc_sid=58080a&oh=00_AQPpUbWMBhsEZK038gVi3zelrFQr3AoL6L49KDvfsNKuLg&oe=6ACB3C00",
+  "Post IG - Carrusel Cumple": "https://external-ord5-1.xx.fbcdn.net/emg1/v/t13/1640850631852349134?url=https%3A%2F%2Fwww.facebook.com%2Fads%2Fimage%2F%3Fd%3DAQIf6yGbXt8TppDl6eR0xny3xdmMXO-tZHFY-goI9VYhCc17kcU37ZqcQDY07AsVvwvlKNwntsvC5Mf9vyNIkKP-qsCOiOgDm93SBsZf651DrrIQts82MIaZLtGkpXkneGuJmHUSeROZUKcsQpqXDEnD&fb_obo=1&utld=facebook.com&_nc_sid=58080a&_nc_ht=external-ord5-1.xx.fbcdn.net&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ccb=18-1&_nc_gid=2lrKk7PNnyCwqb-C9c7wsw&edm=AOgd6ZUEAAAA&_nc_zt=3&_nc_tpa=Q5bMBQKFzngS2gzVoR0nj4ERWMHG4xBuQaKyZd8K15OyAp_WOOVnf-9d9RZi5778SkH6BlqtGjNZ1ryY&oh=06_Q3_EAYSkH2UPI17f5AGFzfKpaOVmJQRA5qlOZQxBiqWZzWKZ&oe=6AC72D20",
+  "Post IG - Cumple 2": "https://external-ord5-1.xx.fbcdn.net/emg1/v/t13/11355128325007602209?url=https%3A%2F%2Fwww.facebook.com%2Fads%2Fimage%2F%3Fd%3DAQKxQAMmyTENATv05hSuBcbsgtkZu-rRCH6rZgdUqydo2-2rCD5jrzsbhLhWnzsgzpd-wvljPtWksVeBfd8zX3Fu5thiRR5ptTQP3R1wn31jlU_uWJRWeoFXg5VtpQyNwn2IHbh15d8RALFhBN4J79cY&fb_obo=1&utld=facebook.com&_nc_sid=58080a&_nc_ht=external-ord5-1.xx.fbcdn.net&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ccb=18-1&_nc_gid=2lrKk7PNnyCwqb-C9c7wsw&edm=AOgd6ZUEAAAA&_nc_zt=3&_nc_tpa=Q5bMBQLs0HzCA6ayEN60NGGhdQs2-owY6NWF9b0KBU_HaU3NpvIHuku7aZFzWjnuiZlbq7vgW_eBURkA&oh=06_Q3_EAXDCDpSr8OxcJalzX4tPUQSgNmDNDnx38vgueSdZ73sl&oe=6AC73BEE",
+  "Banner_4_Nov25": "https://scontent-ord5-2.xx.fbcdn.net/v/t45.1600-4/585279999_26070653329185855_5322552150558644291_n.png?_nc_cat=105&ccb=1-7&_nc_ohc=9ccSL9y-hOkQ7kNvwG36XGG&_nc_oc=Adoa9VKuIsYMp3tqqGB2AZXt5rayLC-1l6LulxPavlQf61zirySPIltsDYD50I9gYSQ&_nc_zt=1&_nc_ht=scontent-ord5-2.xx&edm=AOgd6ZUEAAAA&_nc_gid=2lrKk7PNnyCwqb-C9c7wsw&_nc_tpa=Q5bMBQJFJDfIcKWOauAw9oD456bbuj8FfAsDAoS1Dkhtenz9_zo6v-lacZDn5DT0a-hJ_fl6iNPbiszm&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=52f3c4&_nc_sid=58080a&oh=00_AQPNNrTLa8J2W_0kgCihQzT9FGUY_qIfNaUMe5dFj-7ZEA&oe=6ACB2AEB",
+  "Banner_6_Nov25": "https://scontent-ord5-1.xx.fbcdn.net/v/t45.1600-4/584450508_26070652882519233_4257906737742596815_n.png?_nc_cat=101&ccb=1-7&_nc_ohc=Bu8CQrw39rcQ7kNvwF8Ctjv&_nc_oc=AdrbVHatnIoO44dKfiNQovlOcjfvBtGZZj2KWixLYEOklGoPDk0Qpn2YEkO89ohw4eo&_nc_zt=1&_nc_ht=scontent-ord5-1.xx&edm=AOgd6ZUEAAAA&_nc_gid=2lrKk7PNnyCwqb-C9c7wsw&_nc_tpa=Q5bMBQI5zDEFcrz1l0Wc2hqcZ7sz1X1olM655QHoGOuDtsqmS8T2CE_b0XyyzRD_QzJr-Xn3M2OVSpho&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=52f3c4&_nc_sid=58080a&oh=00_AQOQQoCYHSP3NaE5F-YbRAcoY7TmSfv8OuB7krF2SRhfog&oe=6ACB5329",
+  "Banner_3_Nov25": "https://scontent-ord5-1.xx.fbcdn.net/v/t45.1600-4/586526629_26070652559185932_7297555952911552508_n.png?_nc_cat=111&ccb=1-7&_nc_ohc=E1Aghvat6_IQ7kNvwEceg0-&_nc_oc=AdoYA7ZkNkxKSZAad3rGavkIe64xMgoOt0PUU0d5wijG97XrY8BXMO-_qH9Pr6f-iVg&_nc_zt=1&_nc_ht=scontent-ord5-1.xx&edm=AOgd6ZUEAAAA&_nc_gid=2lrKk7PNnyCwqb-C9c7wsw&_nc_tpa=Q5bMBQJ2UxRh6z9Ox5wUK70_FoApg4bxsSD4pYU2Yw40PzX6EpCxPnoNp8lvanQGN8dDGWoHHWyg4uo1&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=52f3c4&_nc_sid=58080a&oh=00_AQPgI6EdmgfqZeXJYcGcFVSySRk54YOiBBHm6MhxRaZdAQ&oe=6ACB3142",
+  "Video_1_Nov25": "https://scontent-ord5-2.xx.fbcdn.net/v/t15.5256-10/585206993_32566714592944014_6582995819612182549_n.jpg?_nc_cat=102&ccb=1-7&_nc_ohc=P4DdmwW0ffAQ7kNvwHLhSh0&_nc_oc=Adr5B0x71lAt56I9sjrrHMyS7NzGlj6v9zUN9yMqfVKpdoDmaXJk5RuWjxGI2LktD1w&_nc_zt=23&_nc_ht=scontent-ord5-2.xx&edm=AOgd6ZUEAAAA&_nc_gid=2lrKk7PNnyCwqb-C9c7wsw&_nc_tpa=Q5bMBQKKld-ArnaJFV3x4muDf0PYUbHJ8b6Yd3SSgJzGhH313bGICmXpoGF4Jsbt9OsGMiOhyE5VdIEN&stp=c0.5000x0.5000f_dst-emg0_p400x400_q75_tt6&ur=b696e2&_nc_sid=58080a&oh=00_AQMlmENGx1vWlJzQFYLTwVNJbuGehjir7dT2g4hi1EVzWw&oe=6ACB4372"
+};
+
+// ---------- FORMATO ----------
+function n0(v){ return new Intl.NumberFormat("es-AR",{maximumFractionDigits:0}).format(Math.round(v)); }
+function ars(v){ return "$" + n0(v); }
+function pct(v,d){ return new Intl.NumberFormat("es-AR",{minimumFractionDigits:d||1,maximumFractionDigits:d||1}).format(v) + "%"; }
+function varia(a,b){ if(!b || b===0) return null; return ((a-b)/b)*100; }
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+function dlt(vPct, goodDown){
+  if(vPct===null || !isFinite(vPct)) return '<div class="kpi-d flat">&mdash; <small>vs '+PERIOD_PREV.low+'</small></div>';
+  var abs = Math.abs(vPct);
+  var flat = abs < 0.5;
+  var cls = flat ? "flat" : ((vPct>0) !== !!goodDown ? "up" : "dn");
+  var arrow = flat ? "=" : (vPct>0 ? "▲" : "▼");
+  return '<div class="kpi-d '+cls+'">'+arrow+' '+pct(abs,1)+' <small>vs '+PERIOD_PREV.low+'</small></div>';
+}
+function cell(vPct, tipo){
+  if(vPct===null || !isFinite(vPct)) return '<span class="nil">—</span>';
+  var s = (vPct>=0?"+":"") + pct(vPct,1);
+  if(tipo==="alto") return '<span class="'+(vPct>=0?"up-txt":"dn-txt")+'">'+s+'</span>';
+  if(tipo==="bajo") return '<span class="'+(vPct<=0?"up-txt":"dn-txt")+'">'+s+'</span>';
+  return '<span class="flat-txt">'+s+'</span>';
+}
+
+// ---------- DESCUBRIMIENTOS (contenido cargado desde el .js externo) ----------
+var FINDINGS = null;
+
+function pintarInvShift(){
+  var order = ["google","meta","bing","tiktok"];
+  var html = order.map(function(k){
+    var real = D[k].cur.inv / D.total.cur.inv * 100;
+    var plan = PLAN_MIX[k];
+    var label = D[k].label.replace(" (con IVA)","");
+    var up = plan > real + 0.3, down = plan < real - 0.3;
+    var cls = up ? "up-txt" : (down ? "dn-txt" : "flat-txt");
+    var arrow = up ? "▲" : (down ? "▼" : "=");
+    return '<div class="ishift-row">'+
+      '<div class="ishift-label"><span>'+label+'</span><span class="ishift-legend">OCT '+pct(real,0)+' &rarr; NOV '+
+        '<span class="'+cls+'">'+pct(plan,0)+' '+arrow+'</span></span></div>'+
+      '<div class="ishift-bars">'+
+        '<div class="ishift-bar-track"><div class="ishift-bar" style="width:'+real+'%;background:var(--g2)"></div></div>'+
+        '<div class="ishift-bar-track"><div class="ishift-bar" style="width:'+plan+'%;background:var(--red)"></div></div>'+
+      '</div></div>';
+  }).join("");
+  document.getElementById("invShiftRows").innerHTML = html;
+}
+
+// Contenido de "Cómo se mide" — criterio de conversión por plataforma. Fijo, no editable vía el .js externo.
+var ALERT = {
+  total:'Google computa el <b>envío de formulario</b> (desde el 20/10; antes, la cotización finalizada) y Microsoft la <b>cotización de seguro finalizada</b>; Meta computa el <b>formulario completo</b> (Website Complete Registration); TikTok computa el <b>evento de conversión de formulario</b>. El costo por lead consolidado es una referencia de escala entre plataformas con criterios de medición distintos, no un comparativo puro. Los <b>leads de CRM y las pólizas cerradas</b> provienen del panel Iu_Consolidado Ventas de iúnigo, con fecha de cierre del mes, y no de Master Metrics. Los clics de TikTok se expresan como <b>clics totales</b> de la plataforma, criterio que se aplica a ambos meses. Los datos de CRM de octubre corresponden a medios pagos; no se recibió el detalle de «Directo / sin campaña asignada».',
+  google:'Hasta el 20/10 esta cuenta computó la <b>cotización de seguro finalizada</b>; desde esa fecha computa el <b>envío de formulario con conversiones mejoradas</b>, sin cambio de volumen (483 y 494 conversiones en las dos semanas siguientes al cambio). Las conversiones de Google se reatribuyen con el paso de los días: el dato de septiembre se actualizó a 2.178 (se había reportado 2.166 con el mes recién cerrado). La campaña de Demand Gen de awareness trabaja sobre la parte alta del embudo y no tiene conversiones de último clic.',
+  meta:'Esta cuenta computa el <b>formulario completo</b> (Website Complete Registration) como lead. Las campañas de alcance en video y de tráfico a Instagram no tienen objetivo de lead y no participan del cálculo de costo por lead de las líneas de captación y remarketing. La tasa de conversión a póliza de <b>0,84%</b> se calcula sobre las conversiones de plataforma (6 pólizas sobre 713); sobre los leads que llegan al CRM (494) es de 1,21%.',
+  bing:'Esta cuenta computa la <b>conversión de cotización</b>. La inversión incluye el 21% de IVA sobre el gasto en dólares, convertido a $1.550. El seguimiento de ejecución de presupuesto se mide en dólares, para que el impuesto y el tipo de cambio no distorsionen la comparación.',
+  tiktok:'Esta cuenta computa el <b>evento de conversión de formulario</b>. La campaña de alcance no tiene objetivo de lead: el costo por lead relevante del canal es el de la campaña de generación de leads, no el consolidado.'
+};
+
+function pintarDescubrimientos(k){
+  document.getElementById("execTitle").textContent = k==="total" ? "Descubrimientos y próximos pasos · portfolio" : "Descubrimientos y próximos pasos · " + D[k].label;
+  document.getElementById("invShift").style.display = (k==="total") ? "block" : "none";
+  document.getElementById("alertTxt").innerHTML = ALERT[k] || "";
+  var es0 = document.getElementById("execSteps"); if(es0) es0.innerHTML = "";
+
+  if(!FINDINGS){
+    document.getElementById("execList").innerHTML = '<div class="fc"><span class="fc-tag action">Atención</span><div class="fc-text">No se encontró <b>'+esc(FINDINGS_FILE)+'</b>. Verificá que el archivo esté en la misma carpeta que este HTML.</div></div>';
+    return;
+  }
+  var pasos = (FINDINGS.pasos && FINDINGS.pasos[k]) || [];
+  var elSteps = document.getElementById("execSteps");
+  if(elSteps){
+    elSteps.innerHTML = pasos.length
+      ? '<div class="steps"><div class="steps-k">Próximos pasos</div>' + pasos.map(function(p, i){
+          return '<div class="step"><span class="step-n">'+(i+1)+'</span><span class="step-a">'+esc(p.area)+'</span><span class="step-t">'+esc(p.texto)+'</span></div>';
+        }).join("") + '</div>'
+      : "";
+  }
+  var items = FINDINGS[k] || [];
+  document.getElementById("execList").innerHTML = items.map(function(f){
+    var cls = f.featured ? "fc featured" : "fc";
+    var badge = f.featured ? '<span class="fc-badge">Prioridad alta</span>' : "";
+    var stat = (f.featured && f.stat) ? '<div class="fc-stat">'+esc(f.stat)+'</div>' : "";
+    return '<div class="'+cls+'">'+badge+stat+
+      '<div class="fc-row"><span class="fc-tag">Qué detectamos</span><div class="fc-text">'+esc(f.detectamos)+'</div></div>'+
+      '<div class="fc-row"><span class="fc-tag">Por qué importa</span><div class="fc-text">'+esc(f.importa)+'</div></div>'+
+      '<div class="fc-row"><span class="fc-tag action">Qué hacemos</span><div class="fc-action">'+esc(f.accion)+'</div></div>'+
+    '</div>';
+  }).join("");
+}
+
+function cargarFindings(){
+  var externo = window.IUNIGO_FINDINGS;
+  var fallback = window.IUNIGO_FINDINGS_DEFAULT;
+  FINDINGS = externo || fallback;
+
+  if(!FINDINGS){
+    document.getElementById("execStatus").textContent = "";
+    document.getElementById("execList").innerHTML =
+      '<div class="fc"><span class="fc-tag action">Atención</span><div class="fc-text">'+
+      'No se encontró contenido de descubrimientos ni en <b>'+esc(FINDINGS_FILE)+'</b> ni en el respaldo embebido del HTML.</div></div>';
+    return;
+  }
+  var meta = FINDINGS._meta;
+  var fuente = externo ? "archivo externo" : "contenido embebido en el HTML";
+  document.getElementById("execStatus").textContent =
+    (meta && meta.actualizado ? "Actualizado " + meta.actualizado : "") + " · " + fuente;
+  pintarDescubrimientos(document.getElementById("filtro").value);
+}
+
+// ---------- KPIs ----------
+function pintarKpis(k){
+  var d = D[k], c = d.cur, p = d.prev;
+  var cplC = c.inv/c.leads, cplP = p.inv/p.leads;
+  var crC = (c.leads/c.clics)*100, crP = (p.leads/p.clics)*100;
+  var cpcC = c.inv/c.clics, cpcP = p.inv/p.clics;
+
+  document.getElementById("kpiCtx").textContent = d.label + " · " + PERIOD_CUR.label + " " + PERIOD_CUR.year + " (mes cerrado)";
+  document.getElementById("tagline").innerHTML = "Mostrando <b>"+d.label+"</b> · datos exclusivos de esta selección en toda la página.";
+
+  var cards = [
+    {c:"hero", l:"Inversión", v:ars(c.inv), d:dlt(varia(c.inv,p.inv), false)},
+    {c:"lead", l:"Leads generados", v:n0(c.leads), d:dlt(varia(c.leads,p.leads), false)},
+    {c:"lead", l:"Costo por lead", v:ars(cplC), d:dlt(varia(cplC,cplP), true)},
+    {c:"", l:"Tasa de conversión", v:pct(crC,2), d:dlt(varia(crC,crP), false)},
+    {c:"", l:"Impresiones", v:n0(c.imp), d:dlt(varia(c.imp,p.imp), false)},
+    {c:"", l:"Clics", v:n0(c.clics), d:dlt(varia(c.clics,p.clics), false)},
+    {c:"", l:"Costo por clic", v:ars(cpcC), d:dlt(varia(cpcC,cpcP), true)}
+  ];
+  document.getElementById("kpis").innerHTML = cards.map(function(x){
+    return '<div class="kpi '+x.c+'"><div class="kpi-l">'+x.l+'</div><div class="kpi-v">'+x.v+'</div>'+x.d+'</div>';
+  }).join("");
+
+  if(k==="total"){
+    var pctPlan = PLAN_CUR.ejecutado/PLAN_CUR.asignado*100;
+    document.getElementById("kpiNote").innerHTML = "Ejecución sobre el plan de "+PERIOD_CUR.low+": <b>"+pct(pctPlan,1)+
+      "</b> ("+ars(PLAN_CUR.ejecutado)+" sobre "+ars(PLAN_CUR.asignado)+" asignados), con Microsoft incluyendo el IVA. Los clics e impresiones de Google incluyen la campaña de Demand Gen de awareness (34.812 clics y 637.281 impresiones): por eso baja la tasa de conversión del consolidado, sin que cambie la eficiencia por lead.";
+  } else if(k==="bing"){
+    document.getElementById("kpiNote").innerHTML = "Inversión con el 21% de IVA ya incluido, sobre el gasto en dólares convertido a $1.550. En dólares, "+PERIOD_CUR.low+" consumió el <b>78,4%</b> del presupuesto asignado (US$1.471 de US$1.877, antes de impuestos), contra el 89,8% de "+PERIOD_PREV.low+".";
+  } else if(k==="tiktok"){
+    document.getElementById("kpiNote").innerHTML = "El consolidado incluye la campaña de alcance, que no tiene objetivo de lead. Medida sola, la campaña de generación de leads cerró a <b>$7.807</b> por lead (62 leads).";
+  } else {
+    document.getElementById("kpiNote").textContent = (k==="google")
+      ? "El costo por lead se calcula sobre la acción de lead de la cuenta. La tasa de conversión baja porque la campaña de Demand Gen de awareness sumó 34.812 clics sin objetivo de lead; sin ellos, la tasa de conversión de Google sería 18,2% (16,1% en septiembre)."
+      : "El costo por lead y la tasa de conversión se calculan sobre la acción de lead marcada para esta cuenta.";
+  }
+}
+
+// ---------- RANKING DE CAMPAÑAS ----------
+function pintarCampanas(k){
+  var rows = CAMP.filter(function(c){ return (k==="total" || c.p===k) && c.lc !== null; });
+  rows.sort(function(a,b){ return b.lc - a.lc; });
+  rows = rows.slice(0, 8);
+  document.getElementById("campCtx").textContent = k==="total"
+    ? "Ordenado por leads de "+PERIOD_CUR.low+" · todas las plataformas"
+    : "Ordenado por leads de "+PERIOD_CUR.low+" · exclusivo de " + D[k].label;
+  document.getElementById("tbCamp").innerHTML = rows.map(function(c, i){
+    var cc = c.ic/c.lc;
+    var cp = (c.lp && c.lp>0) ? c.ip/c.lp : null;
+    var nota = c.nota ? ' <span class="tag">'+c.nota+'</span>' : "";
+    return "<tr>"+
+      "<td class=\"rk\">"+String(i+1).padStart(2,"0")+"</td>"+
+      "<td>"+c.n+nota+"</td>"+
+      "<td>"+n0(c.lc)+"</td>"+
+      "<td>"+ars(cc)+"</td>"+
+      "<td>"+cell(varia(cc,cp),"bajo")+"</td>"+
+    "</tr>";
+  }).join("");
+}
+
+function thumbIcon(tipo){ return tipo==="video" ? "▶" : "🖼"; }
+function thumbHtml(r){
+  var url = META_IMG[r.n];
+  if(url){
+    return "<div class=\"thumb\">"+
+      "<img src=\""+url+"\" alt=\"Creativo "+esc(r.n)+"\" loading=\"lazy\" onerror=\"this.style.display='none';this.nextElementSibling.style.display='flex';\">"+
+      "<span class=\"fallback\">"+thumbIcon(r.tipo)+"</span>"+
+    "</div>";
+  }
+  return "<div class=\"thumb\">"+thumbIcon(r.tipo)+"</div>";
+}
+function nameCell(r){
+  return "<div class=\"creative-name\">"+thumbHtml(r)+
+    "<div class=\"cn-txt\"><span style=\"color:var(--ink);font-weight:600;font-size:13px\">"+esc(r.n)+"</span>"+
+    "<span>"+(r.tipo==="video"?"Video":(r.tipo==="banner"?"Banner":"Pieza"))+"</span></div></div>";
+}
+function creativeRows(arr){
+  return arr.slice().sort(function(a,b){ return b.leads-a.leads; }).slice(0,5).map(function(r, i){
+    var cpl = r.leads>0 ? ars(r.inv/r.leads) : '<span class="nil">sin leads</span>';
+    var tagCls = r.estado==="activo" ? "tag active" : "tag paused";
+    var tagTxt = r.estado==="activo" ? "Activo" : "Pausado";
+    return "<tr><td class=\"rk\">"+String(i+1).padStart(2,"0")+"</td>"+
+      "<td>"+nameCell(r)+"</td>"+
+      "<td style=\"text-align:left\"><span class=\""+tagCls+"\">"+tagTxt+"</span></td>"+
+      "<td>"+ars(r.inv)+"</td><td>"+n0(r.leads)+"</td><td>"+cpl+"</td></tr>";
+  }).join("");
+}
+function cumpleRows(arr){
+  return arr.map(function(r, i){
+    return "<tr><td class=\"rk\">"+String(i+1).padStart(2,"0")+"</td>"+
+      "<td>"+nameCell(r)+"</td>"+
+      "<td style=\"text-align:left\"><span class=\"tag\">"+r.obj+"</span></td>"+
+      "<td>"+ars(r.inv)+"</td><td>"+n0(r.imp)+"</td><td>"+n0(r.clics)+"</td></tr>";
+  }).join("");
+}
+
+function pintarTablasFijas(){
+  document.getElementById("tbCierres").innerHTML = CIERRES.map(function(r){
+    var brecha = (r.platC && r.crmC!==null) ? ((r.crmC-r.platC)/r.platC)*100 : null;
+    var brechaTxt;
+    if(brecha===null){ brechaTxt = '<span class="nil">—</span>'; }
+    else {
+      var cls = Math.abs(brecha) < 15 ? "flat-txt" : "dn-txt";
+      brechaTxt = '<span class="'+cls+'">'+pct(brecha,1)+'</span>';
+    }
+    var tasa = (r.crmC>0 && !r.sinTasa) ? (r.cieC/r.crmC)*100 : null;
+    var cxp = (r.invC && r.cieC>0) ? r.invC/r.cieC : null;
+    var nombre = r.origen + (r.alerta ? ' <span class="tag">Sin leads en CRM</span>' : "") + (r.noPago ? ' <span class="tag">No pago</span>' : "");
+    var varCie = r.cieP>0 ? ((r.cieC-r.cieP)/r.cieP)*100 : null;
+    return "<tr>"+
+      "<td>"+nombre+"</td>"+
+      "<td>"+(r.platC!==null?n0(r.platC):'<span class="nil">—</span>')+"</td>"+
+      "<td>"+(r.crmC!==null?n0(r.crmC):'<span class="nil">—</span>')+"</td>"+
+      "<td>"+brechaTxt+"</td>"+
+      "<td>"+n0(r.cieP)+"</td>"+
+      "<td><b>"+n0(r.cieC)+"</b>"+(varCie!==null?' <span style="font-size:10.5px" class="'+(varCie>=0?"up-txt":"dn-txt")+'">'+(varCie>=0?"+":"")+pct(varCie,0)+'</span>':"")+"</td>"+
+      "<td>"+(tasa!==null?pct(tasa,2):'<span class="nil">—</span>')+"</td>"+
+      "<td>"+(cxp?ars(cxp):'<span class="nil">—</span>')+"</td>"+
+    "</tr>";
+  }).join("");
+
+  var maxCosto = Math.max.apply(null, SERIE_COSTO.map(function(s){ return s.v; }));
+  document.getElementById("serieCosto").innerHTML = SERIE_COSTO.map(function(s){
+    var w = (s.v/maxCosto)*100;
+    return '<div class="ishift-row">'+
+      '<div class="ishift-label"><span>'+s.m+'</span><span class="ishift-legend">'+ars(s.v)+' · '+s.cierres+' pólizas</span></div>'+
+      '<div class="ishift-bars"><div class="ishift-bar-track"><div class="ishift-bar" style="width:'+w+'%;background:'+(s.actual?"var(--red)":"var(--g2)")+'"></div></div></div>'+
+    '</div>';
+  }).join("");
+
+  var elProd = document.getElementById("tbProd");
+  if(elProd){ elProd.innerHTML = PRODUCTO.map(function(r){
+    return "<tr><td>"+r.p+"</td><td>"+n0(r.n)+"</td><td>"+pct(r.s,2)+"</td></tr>";
+  }).join(""); }
+
+  document.getElementById("tbEdad").innerHTML = EDAD.map(function(r){
+    var caV = r.la>0 ? r.ia/r.la : null;
+    var ca = caV ? ars(caV) : '<span class="nil">sin leads</span>';
+    var cr = r.lr>0 ? ars(r.ir/r.lr) : '<span class="nil">sin leads</span>';
+    var prev = r.caPrev ? ars(r.caPrev) + " " + cell(varia(caV, r.caPrev), "bajo") : '<span class="nil">—</span>';
+    return "<tr><td>"+r.e+"</td><td>"+ars(r.ia)+"</td><td>"+n0(r.la)+"</td><td>"+ca+
+           "</td><td>"+prev+"</td><td>"+ars(r.ir)+"</td><td>"+n0(r.lr)+"</td><td>"+cr+"</td></tr>";
+  }).join("");
+
+  function termRows(arr){
+    return arr.map(function(t){
+      var l = new Intl.NumberFormat("es-AR",{maximumFractionDigits:1}).format(t.l);
+      return "<tr><td>"+t.t+"</td><td>"+ars(t.i)+"</td><td>"+l+"</td><td>"+
+             (t.c?ars(t.c):'<span class="nil">sin leads</span>')+"</td></tr>";
+    }).join("");
+  }
+  document.getElementById("tbTermOk").innerHTML = termRows(TERM_OK);
+  document.getElementById("tbTermMal").innerHTML = termRows(TERM_MAL);
+
+  document.getElementById("tbDisp").innerHTML = DISP.map(function(r){
+    var cc = r.i/r.l;
+    return "<tr><td>"+r.d+"</td><td>"+ars(r.i)+"</td><td>"+n0(r.l)+"</td><td>"+ars(cc)+
+           "</td><td>"+ars(r.cp)+"</td><td>"+cell(varia(cc,r.cp),"bajo")+"</td></tr>";
+  }).join("");
+
+  document.getElementById("tbMetaAdq").innerHTML = creativeRows(META_ADQ);
+  document.getElementById("tbMetaRmk").innerHTML = creativeRows(META_RMK);
+  document.getElementById("tbMetaCumple").innerHTML = cumpleRows(META_CUMPLE);
+}
+
+// ---------- CHARTS ----------
+// Blindado: si Chart.js no cargó (CDN caído, bloqueado, sin red), el resto del reporte
+// (descubrimientos, KPIs, funnel, ranking) debe seguir funcionando igual.
+var claves = ["google","meta","bing","tiktok"];
+try {
+if (typeof Chart === "undefined") throw new Error("Chart.js no disponible");
+
+Chart.defaults.font.family = "Montserrat, sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.color = INK;
+
+var etiquetas = claves.map(function(k){ return D[k].label; });
+
+new Chart(document.getElementById("chPlat"), {
+  data:{
+    labels: etiquetas,
+    datasets:[
+      {type:"bar", label:"Inversión "+PERIOD_PREV.low, data:claves.map(function(k){return D[k].prev.inv;}), backgroundColor:G2, yAxisID:"y", borderRadius:0},
+      {type:"bar", label:"Inversión "+PERIOD_CUR.low, data:claves.map(function(k){return D[k].cur.inv;}), backgroundColor:RED, yAxisID:"y", borderRadius:0},
+      {type:"line", label:"Leads "+PERIOD_CUR.low, data:claves.map(function(k){return D[k].cur.leads;}), borderColor:INK, backgroundColor:INK, yAxisID:"y1", tension:.3, pointRadius:4, borderWidth:2}
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:"index",intersect:false},
+    plugins:{
+      legend:{position:"bottom", labels:{boxWidth:10, boxHeight:10, padding:14}},
+      tooltip:{callbacks:{label:function(c){
+        return c.dataset.label+": "+(c.datasetIndex===2 ? n0(c.parsed.y)+" leads" : ars(c.parsed.y));
+      }}}
+    },
+    scales:{
+      y:{position:"left", grid:{color:"#F0F0F0"}, ticks:{callback:function(v){return "$"+(v/1000000)+"M";}}},
+      y1:{position:"right", grid:{drawOnChartArea:false}, ticks:{callback:function(v){return n0(v);}}},
+      x:{grid:{display:false}}
+    }
+  }
+});
+
+new Chart(document.getElementById("chCpl"), {
+  type:"bar",
+  data:{
+    labels: etiquetas,
+    datasets:[
+      {label:PERIOD_PREV.label, data:claves.map(function(k){return D[k].prev.inv/D[k].prev.leads;}), backgroundColor:G2, borderRadius:0},
+      {label:PERIOD_CUR.label, data:claves.map(function(k){return D[k].cur.inv/D[k].cur.leads;}), backgroundColor:RED, borderRadius:0}
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false, indexAxis:"y",
+    plugins:{
+      legend:{position:"bottom", labels:{boxWidth:10, boxHeight:10, padding:14}},
+      tooltip:{callbacks:{label:function(c){ return c.dataset.label+": "+ars(c.parsed.x); }}}
+    },
+    scales:{
+      x:{grid:{color:"#F0F0F0"}, ticks:{callback:function(v){return "$"+n0(v/1000)+"k";}}},
+      y:{grid:{display:false}}
+    }
+  }
+});
+
+new Chart(document.getElementById("chMix"), {
+  type:"doughnut",
+  data:{
+    labels: etiquetas,
+    datasets:[
+      {label:"Inversión", data:claves.map(function(k){return D[k].cur.inv;}), backgroundColor:[RED,INK,"#9E9E9E",G2], borderColor:"#FFFFFF", borderWidth:2}
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false, cutout:"55%",
+    plugins:{
+      legend:{position:"bottom", labels:{boxWidth:10, boxHeight:10, padding:14}},
+      tooltip:{callbacks:{label:function(c){
+        var tot = c.dataset.data.reduce(function(a,b){return a+b;},0);
+        var p = new Intl.NumberFormat("es-AR",{maximumFractionDigits:1}).format(c.parsed/tot*100);
+        return c.label+": "+ars(c.parsed)+" ("+p+"%)";
+      }}}
+    }
+  }
+});
+
+} catch(chartErr) {
+  ["chPlat","chCpl","chMix"].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el && el.parentElement) el.parentElement.innerHTML = '<p class="note">No se pudo cargar el gráfico (Chart.js no disponible). El resto del reporte funciona con normalidad.</p>';
+  });
+}
+
+document.getElementById("leadsMixNote").innerHTML =
+  "Participación de cada plataforma en la inversión del mes: " +
+  claves.map(function(k){ return D[k].label.replace(" (con IVA)","") + " " + pct(D[k].cur.inv/D.total.cur.inv*100,1); }).join(" · ") + ".";
+
+// ---------- FUNNEL DE CONVERSIÓN ----------
+function pintarFunnel(k){
+  var c = D[k].cur;
+  var max = c.imp || 1;
+  var wImp = 100;
+  var wClic = Math.max((c.clics/max)*100, c.clics>0?0.6:0);
+  var wLead = Math.max((c.leads/max)*100, c.leads>0?0.6:0);
+
+  document.getElementById("fImp").textContent = n0(c.imp);
+  document.getElementById("fClic").textContent = n0(c.clics);
+  document.getElementById("fLead").textContent = n0(c.leads);
+
+  requestAnimationFrame(function(){
+    document.getElementById("fBarImp").style.width = wImp+"%";
+    document.getElementById("fBarClic").style.width = wClic+"%";
+    document.getElementById("fBarLead").style.width = wLead+"%";
+  });
+
+  var ctr = c.imp ? (c.clics/c.imp)*100 : 0;
+  var cvr = c.clics ? (c.leads/c.clics)*100 : 0;
+  document.getElementById("fRateClic").innerHTML = "Tasa de paso desde impresiones: <b>"+pct(ctr,2)+"</b> (CTR)";
+  document.getElementById("fRateLead").innerHTML = "Tasa de paso desde clics: <b>"+pct(cvr,2)+"</b> (tasa de conversión) · costo por lead <b>"+ars(c.inv/(c.leads||1))+"</b>";
+  document.getElementById("tEmbudo").textContent = D[k].label + " · impresiones → clics → conversiones";
+}
+
+// ---------- VISIBILIDAD ESTRICTA POR PLATAFORMA ----------
+function mostrar(id, visible){ var el=document.getElementById(id); if(el) el.style.display = visible ? "" : "none"; }
+
+function aplicarVisibilidad(k){
+  mostrar("secAccion", k==="total");
+  mostrar("secCompare", k==="total");
+  mostrar("secCierres", k==="total");
+  mostrar("secEmision", k==="total");
+  mostrar("secMetaCreatives", k==="meta");
+  mostrar("secMetaAudience", k==="meta");
+  mostrar("secGoogleSearch", k==="google");
+  mostrar("secGoogleDevice", k==="google");
+}
+
+function aplicar(k){
+  pintarDescubrimientos(k);
+  pintarKpis(k);
+  pintarCampanas(k);
+  pintarFunnel(k);
+  aplicarVisibilidad(k);
+}
+
+document.getElementById("filtro").addEventListener("change", function(e){ aplicar(e.target.value); });
+aplicarPeriodo();
+pintarTablasFijas();
+pintarInvShift();
+cargarFindings();
+aplicar("total");
+})();
+</script>
+</body>
+</html>
